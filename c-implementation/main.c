@@ -1,3 +1,4 @@
+#include "ctype.h"
 #include "stdbool.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -69,7 +70,7 @@ void gcInit(int N) {
 
 // gcAlloc :: () -> Cell
 cell gcAlloc() {
-  if (GC_FREE == Nil) gcRun();
+  // if (GC_FREE == Nil) gcRun();
   if (GC_FREE == Nil) {
     printf("Out of memory.\n");
     exit(1);
@@ -152,16 +153,149 @@ void print(cell x) {
   }
 }
 
+int C;
+cell read();
+
+cell readInt() {
+  char buf[32];
+  buf[0] = C;
+  int i = 1;
+  while ((C = getc(stdin)) != EOF && isdigit(C)) buf[i++] = C; // TODO check buffer overflow
+  buf[i] = 0;
+
+  return Int(atoi(buf));
+}
+
+cell readSymbol() {
+  char buf[32];
+  buf[0] = C;
+  int i = 1;
+  while ((C = getc(stdin)) != EOF && !isspace(C) && C != ')') buf[i++] = C; // TODO check buffer overflow
+  buf[i] = 0;
+
+  return Symbol(buf);
+}
+
+cell readCons() {
+  cell xs = Nil, c = Nil, first;
+  while ((first = read()) != Nil) {
+    if (!c) {
+      xs = c = Cons(first, Nil);
+    } else {
+      c->data.c.rest = Cons(first, Nil);
+      c = c->data.c.rest;
+    }
+    if (C == ')') break;
+  }
+
+  if (C != EOF) C = getc(stdin);
+
+  return xs;
+}
+
+cell readCell() {
+  if (C == EOF) {
+    return Nil;
+  } else if (isdigit(C)) {
+    return readInt();
+  } else if (C == '(') {
+    return readCons();
+  } else if (C != ')') {
+    return readSymbol();
+  }
+
+  return Nil;
+}
+
 // read :: () -> a
 cell read() {
-  return Nil;
+  while ((C = getc(stdin)) != EOF && isspace(C));
+  return readCell();
+}
+
+cell first(cell x) {
+  return x->data.c.first; // TODO check for Cons
+}
+
+cell rest(cell x) {
+  return x->data.c.rest; // TODO check for Cons
+}
+
+bool eq(char *a, char *b) {
+  return strcmp(a, b) == 0;
+}
+
+// eval :: List a -> Cell -> Cell
+cell eval(cell scope, cell x) {
+  if (x == Nil) return Nil;
+
+  if (x->type == CONS) {
+    cell op = eval(scope, x->data.c.first);
+    cell args = rest(x);
+    if (op->type == SYMBOL) {
+      char *f = op->data.s;
+      if (eq(f, "def")) {
+        cell value = eval(scope, first(rest(args)));
+        GC_SCOPE = Cons(first(args), Cons(value, GC_SCOPE));
+        return value;
+      } else if (eq(f, "*")) {
+        int i = 1;
+        while (args != Nil) {
+          i *= eval(scope, first(args))->data.i; // TODO check for Int
+          args = rest(args);
+        }
+
+        return Int(i);
+      } else if (eq(f, "+")) {
+        int i = 0;
+        while (args != Nil) {
+          i += eval(scope, first(args))->data.i; // TODO check for Int
+          args = rest(args);
+        }
+
+        return Int(i);
+      } else if (eq(f, "fn")) {
+        return x;
+      }
+
+      printf("No such operator. %s\n", f);
+      return Nil;
+    } else {
+      cell names = first(rest(op));
+      while (names != Nil) {
+        scope = Cons(first(names), Cons(eval(scope, first(args)), scope));
+        names = rest(names);
+        args = rest(args);
+      }
+
+      return eval(scope, first(rest(rest(op))));
+    }
+  } else if (x->type == SYMBOL) {
+    if (eq(x->data.s, "scope")) return scope;
+    cell c = scope;
+    while (c != Nil) {
+      if (eq(first(c)->data.s, x->data.s)) return first(rest(c));
+      c = rest(rest(c));
+    }
+
+    // printf("No such symbol. %s\n", x->data.s);
+    return x;
+  }
+  
+  return x;
 }
 
 // main :: () -> Int
 int main() {
-  gcInit(20);
-  cell code = Cons(Cons(Symbol("map"), Nil), Cons(Int(44), Nil));
-  print(code);
-  printf("\n");
-  gcFree();
+  gcInit(200);
+
+  while (true) {
+    printf(" => ");
+    cell code = read();
+    code = eval(GC_SCOPE, code);
+    print(code); printf("\n");
+    gcRun();
+    gcFree();
+    printf("\n");
+  }
 }
