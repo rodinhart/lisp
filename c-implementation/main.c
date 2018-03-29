@@ -143,7 +143,7 @@ void gcFree() {
 // print :: a -> ()
 void print(cell x) {
   if (x == Nil) {
-    printf("nil");
+    printf("()");
     return;
   }
 
@@ -167,7 +167,11 @@ void print(cell x) {
 }
 
 int C;
-cell read();
+cell readCell();
+
+void readSpace() {
+  while ((C = getc(stdin)) != EOF && isspace(C));
+}
 
 cell readInt() {
   char buf[32];
@@ -191,38 +195,48 @@ cell readSymbol() {
 
 cell readCons() {
   cell xs = Nil, c = Nil, first;
-  while ((first = read()) != Nil) {
+
+  do {
+    readSpace();
+    if (C == EOF) {
+      printf("Missing )\n");
+      return Nil;
+    }
+
+    if (C == ')') {
+      C = getc(stdin);
+      return xs;
+    }
+
+    first = readCell();
     if (!c) {
       xs = c = Cons(first, Nil);
     } else {
       c->data.c.rest = Cons(first, Nil);
       c = c->data.c.rest;
     }
-    if (C == ')') break;
-  }
 
-  if (C != EOF) C = getc(stdin);
-
-  return xs;
+    if (C == ')') {
+      C = getc(stdin);
+      return xs;
+    }
+  } while (true);
 }
 
 cell readCell() {
-  if (C == EOF) {
-    return Nil;
-  } else if (isdigit(C)) {
+  if (isdigit(C)) {
     return readInt();
   } else if (C == '(') {
     return readCons();
   } else if (C != ')') {
     return readSymbol();
   }
-
-  return Nil;
 }
 
 // read :: () -> a
 cell read() {
-  while ((C = getc(stdin)) != EOF && isspace(C));
+  readSpace();
+  if (C == EOF) return Nil;
   return readCell();
 }
 
@@ -318,6 +332,7 @@ cell eval(cell scope, cell x) {
 // main :: () -> Int
 int main() {
   gcInit(200);
+
   GC_SCOPE =
     Cons(Symbol("def"), Cons(Core(0),
     Cons(Symbol("*"), Cons(Core(1),
@@ -325,7 +340,7 @@ int main() {
     Cons(Symbol("fn"), Cons(Core(3),
     Nil))))))));
 
-  while (true) {
+  while (C != EOF) {
     printf(" => ");
     cell code = read();
     code = eval(GC_SCOPE, code);
