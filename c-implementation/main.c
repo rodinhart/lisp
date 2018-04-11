@@ -10,7 +10,11 @@ enum { INT, SYMBOL, CONS, CORE };
 typedef struct _cell {
   union {
     int i;
-    char s[8];
+    struct {
+      int i;
+      struct _cell *body;
+    } core;
+    char s[16];
     struct {
       struct _cell *first;
       struct _cell *rest;
@@ -35,6 +39,9 @@ void gcMark(cell x) {
       gcMark(x->data.c.first);
       x = x->data.c.rest;
     }
+  } else if (x->type == CORE) {
+    x->marked = true;
+    gcMark(x->data.core.body);
   } else {
     x->marked = true;
   }
@@ -59,6 +66,7 @@ void gcRun() {
 
 // gcInit :: Int -> ()
 void gcInit(int N) {
+  printf("Cell size: %i bytes\n", sizeof(struct _cell));
   GC_N = N;
   GC_MEM = (cell)malloc(GC_N * sizeof(struct _cell));
   for (int i = 0; i < GC_N; i += 1) {
@@ -97,10 +105,10 @@ cell Int(int i) {
 cell Symbol(char *s) {
   cell x = gcAlloc();
   x->type = SYMBOL;
-  for (int i = 0; i < 7; i += 1) {
+  for (int i = 0; i < 15; i += 1) {
     x->data.s[i] = s[i];
   }
-  x->data.s[7] = 0;
+  x->data.s[15] = 0;
 
   return x;
 } 
@@ -115,11 +123,12 @@ cell Cons(cell first, cell rest) {
   return xs;
 }
 
-// Core :: int -> Cell
-cell Core(int i) {
+// Core :: int -> Cell -> Cell
+cell Core(int i, cell body) {
   cell x = gcAlloc();
   x->type = CORE;
-  x->data.i = i;
+  x->data.core.i = i;
+  x->data.core.body = body;
 
   return x;
 }
@@ -162,7 +171,11 @@ void print(cell x) {
   } else if (x->type == SYMBOL) {
     printf("%s", x->data.s);
   } else if (x->type == CORE) {
-    printf("FN%i", x->data.i);
+    printf("FN%i", x->data.core.i);
+    if (x->data.core.body != Nil) {
+      printf(" ");
+      print(x->data.core.body);
+    }
   }
 }
 
@@ -254,14 +267,7 @@ bool eq(char *a, char *b) {
 
 cell eval(cell, cell);
 
-cell def(cell scope, cell expr, cell args) {
-  cell value = eval(scope, first(rest(args)));
-  GC_SCOPE = Cons(first(args), Cons(value, GC_SCOPE));
-
-  return value;
-}
-
-cell mul(cell scope, cell expr, cell args) {
+cell coreMul(cell scope, cell args, cell body) {
   int i = 1;
   while (args != Nil) {
     i *= eval(scope, first(args))->data.i; // TODO check for Int
@@ -271,7 +277,7 @@ cell mul(cell scope, cell expr, cell args) {
   return Int(i);
 }
 
-cell add(cell scope, cell expr, cell args) {
+cell coreAdd(cell scope, cell args, cell body) {
   int i = 0;
   while (args != Nil) {
     i += eval(scope, first(args))->data.i; // TODO check for Int
@@ -281,16 +287,89 @@ cell add(cell scope, cell expr, cell args) {
   return Int(i);
 }
 
-cell fn(cell scope, cell expr, cell args) {
-  return expr;
+cell coreFn(cell scope, cell args, cell body) {
+  return Core(8, args);
+}
+
+cell coreQuote(cell scope, cell args, cell body) {
+  return first(args);
+}
+
+cell coreIf(cell scope, cell args, cell body) {
+  cell value = eval(scope, first(args));
+  if (value != Nil) {
+    return eval(scope, first(rest(args)));
+  } else {
+    return eval(scope, first(rest(rest(args))));
+  }
+}
+
+cell coreFn2(cell scope, cell args, cell body) {
+  cell names = first(body);
+  while (names != Nil) {
+    scope = Cons(first(names), Cons(eval(scope, first(args)), scope));
+    names = rest(names);
+    args = rest(args);
+  }
+
+  return eval(scope, first(rest(body)));
+}
+
+cell coreEval(cell scope, cell args, cell body) {
+  return eval(scope, eval(scope, first(args)));
+}
+
+cell coreDef(cell scope, cell args, cell body) {
+  cell value = eval(scope, first(rest(args)));
+  GC_SCOPE = Cons(first(args), Cons(value, GC_SCOPE));
+
+  return value;
+}
+
+cell coreMacro(cell scope, cell args, cell body) {
+  return Core(9, args);
+}
+
+cell coreMacro2(cell scope, cell args, cell body) {
+  cell name = first(body);
+  scope = Cons(name, Cons(first(args), scope));
+
+  return eval(scope, eval(scope, first(rest(body))));
+}
+
+cell coreFirst(cell scope, cell args, cell body) {
+  return first(eval(scope, first(args)));
+}
+
+cell coreRest(cell scope, cell args, cell body) {
+  return rest(eval(scope, first(args)));
+}
+
+cell evalList(cell scope, cell xs) {
+  if (xs == Nil) return Nil;
+
+  return Cons(eval(scope, first(xs)), evalList(scope, rest(xs)));
+}
+
+cell coreList(cell scope, cell args, cell body) {
+  return evalList(scope, args);
 }
 
 typedef cell (*_core)(cell, cell, cell);
 _core core[] = {
-  def,
-  mul,
-  add,
-  fn
+  coreDef,
+  coreMul,
+  coreAdd,
+  coreFn,
+  coreQuote,
+  coreIf,
+  coreEval,
+  coreMacro,
+  coreFn2,
+  coreMacro2,
+  coreFirst,
+  coreRest,
+  coreList
 };
 
 // eval :: List a -> Cell -> Cell
@@ -303,16 +382,7 @@ cell eval(cell scope, cell x) {
 
     cell args = rest(x);
     if (op->type == CORE) {
-      return core[op->data.i](scope, x, args);
-    } else { // TODO check op is lambda
-      cell names = first(rest(op));
-      while (names != Nil) {
-        scope = Cons(first(names), Cons(eval(scope, first(args)), scope));
-        names = rest(names);
-        args = rest(args);
-      }
-
-      return eval(scope, first(rest(rest(op))));
+      return core[op->data.core.i](scope, args, op->data.core.body);
     }
   } else if (x->type == SYMBOL) {
     if (eq(x->data.s, "scope")) return scope;
@@ -331,22 +401,29 @@ cell eval(cell scope, cell x) {
 
 // main :: () -> Int
 int main() {
-  gcInit(200);
+  gcInit(1000);
 
   GC_SCOPE =
-    Cons(Symbol("def"), Cons(Core(0),
-    Cons(Symbol("*"), Cons(Core(1),
-    Cons(Symbol("+"), Cons(Core(2),
-    Cons(Symbol("fn"), Cons(Core(3),
-    Nil))))))));
+    Cons(Symbol("def"), Cons(Core(0, Nil),
+    Cons(Symbol("*"), Cons(Core(1, Nil),
+    Cons(Symbol("+"), Cons(Core(2, Nil),
+    Cons(Symbol("fn"), Cons(Core(3, Nil),
+    Cons(Symbol("quote"), Cons(Core(4, Nil),
+    Cons(Symbol("if"), Cons(Core(5, Nil),
+    Cons(Symbol("eval"), Cons(Core(6, Nil),
+    Cons(Symbol("macro"), Cons(Core(7, Nil),
+    Cons(Symbol("first"), Cons(Core(10, Nil),
+    Cons(Symbol("rest"), Cons(Core(11, Nil),
+    Cons(Symbol("list"), Cons(Core(12, Nil),
+    Nil))))))))))))))))))))));
 
   while (C != EOF) {
+    gcFree();
     printf(" => ");
     cell code = read();
     code = eval(GC_SCOPE, code);
     print(code); printf("\n");
     gcRun();
-    gcFree();
     printf("\n");
   }
 }
