@@ -35,7 +35,9 @@ const print = xs =>
     ? xs.length === 2 && xs[0] == "quote"
       ? "'" + print(xs[1])
       : "(" + xs.map(print).join(" ") + ")"
-    : typeof xs === "function" ? "->" : xs
+    : typeof xs === "function"
+      ? "->"
+      : xs
 
 // evalǃ :: Scope -> Expr -> Expr
 const evalǃ = scope => expr => {
@@ -103,7 +105,7 @@ const core = {
   }
 }
 
-const code = fs.readFileSync("src/core.clj", "UTF-8")
+const code = fs.readFileSync("js-template/core.clj", "UTF-8")
 const scope = { ...core }
 pipe([read, evalǃ(scope), print, console.log])(code)
 
