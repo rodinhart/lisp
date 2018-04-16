@@ -332,8 +332,9 @@ cell coreMacro(cell scope, cell args, cell body) {
 
 cell coreMacro2(cell scope, cell args, cell body) {
   cell name = first(body);
-  scope = Cons(name, Cons(first(args), scope));
+  scope = Cons(name, Cons(args, scope));
 
+  // return eval(scope, first(rest(body)));
   return eval(scope, eval(scope, first(rest(body))));
 }
 
@@ -355,6 +356,10 @@ cell coreList(cell scope, cell args, cell body) {
   return evalList(scope, args);
 }
 
+cell coreCons(cell scope, cell args, cell body) {
+  return Cons(eval(scope, first(args)), eval(scope, first(rest(args))));
+}
+
 typedef cell (*_core)(cell, cell, cell);
 _core core[] = {
   coreDef,
@@ -369,7 +374,8 @@ _core core[] = {
   coreMacro2,
   coreFirst,
   coreRest,
-  coreList
+  coreList,
+  coreCons
 };
 
 // eval :: List a -> Cell -> Cell
@@ -415,7 +421,8 @@ int main() {
     Cons(Symbol("first"), Cons(Core(10, Nil),
     Cons(Symbol("rest"), Cons(Core(11, Nil),
     Cons(Symbol("list"), Cons(Core(12, Nil),
-    Nil))))))))))))))))))))));
+    Cons(Symbol("cons"), Cons(Core(13, Nil),
+    Nil))))))))))))))))))))))));
 
   while (C != EOF) {
     gcFree();
