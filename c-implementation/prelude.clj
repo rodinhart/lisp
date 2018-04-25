@@ -2,6 +2,13 @@
   (quote def) (first x) (list (quote fn) (first (rest x)) (first (rest (rest x))))
 )))
 
+(defn last (xs)
+  (if (rest xs)
+    (last (rest xs))
+    (first xs)
+  )
+)
+
 (defn map (f xs)
   (if xs
     (cons (f (first xs)) (map f (rest xs)))
@@ -12,3 +19,20 @@
 
 (map sq (list 1 2 3 4 5 6 7 8 9 10))
 
+; (first (list ...x))
+(def do (macro x (list
+  (quote last) (cons (quote list) x)
+)))
+
+(defn move (n from to spare)
+  (if (= n 0)
+    ()
+    (do
+      (move (- n 1) from spare to)
+      (prn (quote move) n (quote from) from (quote to) to)
+      (move (- n 1) spare to from)
+    )
+  )
+)
+
+(move 3 (quote A) (quote B) (quote C))

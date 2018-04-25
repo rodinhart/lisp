@@ -172,10 +172,10 @@ void print(cell x) {
     printf("%s", x->data.s);
   } else if (x->type == CORE) {
     printf("FN%i", x->data.core.i);
-    if (x->data.core.body != Nil) {
-      printf(" ");
-      print(x->data.core.body);
-    }
+    // if (x->data.core.body != Nil) {
+    //   printf(" ");
+    //   print(x->data.core.body);
+    // }
   }
 }
 
@@ -306,13 +306,14 @@ cell coreIf(cell scope, cell args, cell body) {
 
 cell coreFn2(cell scope, cell args, cell body) {
   cell names = first(body);
+  cell newScope = scope;
   while (names != Nil) {
-    scope = Cons(first(names), Cons(eval(scope, first(args)), scope));
+    newScope = Cons(first(names), Cons(eval(scope, first(args)), newScope));
     names = rest(names);
     args = rest(args);
   }
 
-  return eval(scope, first(rest(body)));
+  return eval(newScope, first(rest(body)));
 }
 
 cell coreEval(cell scope, cell args, cell body) {
@@ -360,6 +361,41 @@ cell coreCons(cell scope, cell args, cell body) {
   return Cons(eval(scope, first(args)), eval(scope, first(rest(args))));
 }
 
+cell coreEq(cell scope, cell args, cell body) {
+  cell a = eval(scope, first(args));
+  cell b = eval(scope, first(rest(args)));
+  if (a->data.i == b->data.i) {
+    return a; // hmm
+  }
+
+  return Nil;
+}
+
+// make multi args
+cell corePrn(cell scope, cell args, cell body) {
+  cell c = args;
+  while (c != Nil) {
+    print(eval(scope, first(c)));
+    printf(" ");
+    c = rest(c);
+  }
+
+  printf("\n");
+
+  return Nil;
+}
+
+cell coreSub(cell scope, cell args, cell body) {
+  int i = eval(scope, first(args))->data.i;
+  args = rest(args);
+  while (args != Nil) {
+    i -= eval(scope, first(args))->data.i; // TODO check for Int
+    args = rest(args);
+  }
+
+  return Int(i);
+}
+
 typedef cell (*_core)(cell, cell, cell);
 _core core[] = {
   coreDef,
@@ -375,7 +411,10 @@ _core core[] = {
   coreFirst,
   coreRest,
   coreList,
-  coreCons
+  coreCons,
+  coreEq,
+  corePrn,
+  coreSub
 };
 
 // eval :: List a -> Cell -> Cell
@@ -422,7 +461,10 @@ int main() {
     Cons(Symbol("rest"), Cons(Core(11, Nil),
     Cons(Symbol("list"), Cons(Core(12, Nil),
     Cons(Symbol("cons"), Cons(Core(13, Nil),
-    Nil))))))))))))))))))))))));
+    Cons(Symbol("="), Cons(Core(14, Nil),
+    Cons(Symbol("prn"), Cons(Core(15, Nil),
+    Cons(Symbol("-"), Cons(Core(16, Nil),
+    Nil))))))))))))))))))))))))))))));
 
   while (C != EOF) {
     gcFree();
