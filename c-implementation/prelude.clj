@@ -36,3 +36,10 @@
 )
 
 (move 3 (quote A) (quote B) (quote C))
+
+(defn length (n a)
+  (if (= n 0)
+    a
+    (length (- n 1) (+ a 1))
+  )
+)
