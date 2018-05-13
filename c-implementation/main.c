@@ -171,35 +171,67 @@ _core core[] = {
 
 // eval :: List a -> Cell -> Cell
 cell eval(cell scope, cell x) {
-  if (x == Nil()) return Nil();
+  while (true) {
+    if (x == Nil()) return Nil();
 
-  if (x->type == CONS) {
-    cell op = eval(scope, x->data.c.first);
-    if (op == Nil()) return Nil();
+    if (x->type == CONS) {
+      cell op = eval(scope, x->data.c.first);
+      if (op == Nil()) return Nil();
 
-    cell args = rest(x);
-    if (op->type == CORE) {
-      return core[op->data.core.i](scope, args, op->data.core.body);
+      cell args = rest(x);
+      if (op->type == CORE) {
+        if (op->data.core.i == 5) {
+          // if
+          x = eval(scope, first(args));
+          if (x != Nil()) {
+            x = first(rest(args));
+          } else {
+            x = first(rest(rest(args)));
+          }
+
+          // recur
+        } else {
+          if (op->data.core.i != 8) {
+            // truely core operation
+            return core[op->data.core.i](scope, args, op->data.core.body);
+          }
+
+          // eval a combination
+          cell body = op->data.core.body;
+          cell names = first(body);
+          cell newScope = scope;
+          while (names != Nil()) {
+            newScope = Cons(first(names), Cons(eval(scope, first(args)), newScope));
+            names = rest(names);
+            args = rest(args);
+          }
+
+          scope = newScope;
+          x = first(rest(body));
+
+          // recur
+        }
+      }
+    } else if (x->type == SYMBOL) {
+      if (eq(x->data.s, "scope")) return scope;
+      cell c = scope;
+      while (c != Nil()) {
+        if (eq(first(c)->data.s, x->data.s)) return first(rest(c));
+        c = rest(rest(c));
+      }
+
+      printf("No such symbol. %s\n", x->data.s);
+      return Nil();
+    } else {
+      return x;
     }
-  } else if (x->type == SYMBOL) {
-    if (eq(x->data.s, "scope")) return scope;
-    cell c = scope;
-    while (c != Nil()) {
-      if (eq(first(c)->data.s, x->data.s)) return first(rest(c));
-      c = rest(rest(c));
-    }
-
-    printf("No such symbol. %s\n", x->data.s);
-    return Nil();
   }
-  
-  return x;
 }
 
 // main :: () -> Int
 int main() {
   GC_SCOPE = Nil();
-  gcInit(10000);
+  gcInit(100000);
 
   GC_SCOPE =
     Cons(Symbol("def"), Cons(Core(0, Nil()),

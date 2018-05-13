@@ -1,4 +1,4 @@
-C:\Users\rodin.hart\.vscode\extensions\TuyMove.tcc-compiler-0.0.4\compiler\tcc.exe^
+C:\Users\rodin\.vscode\extensions\TuyMove.tcc-compiler-0.0.4\compiler\tcc.exe^
   c-implementation/mem.c^
   c-implementation/types.c^
   c-implementation/list.c^
