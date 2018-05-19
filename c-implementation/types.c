@@ -40,6 +40,15 @@ cell Fn(cell fn, cell scope) {
   return xs;
 }
 
+cell Macro(cell fn, cell scope) {
+  cell xs = gcAlloc();
+  xs->type = MACRO;
+  xs->data.c.first = fn;
+  xs->data.c.rest = scope;
+
+  return xs;
+}
+
 // Core :: Func -> Cell
 cell Core(core fn) {
   cell x = gcAlloc();

@@ -28,6 +28,12 @@ void gcMark(cell x) {
       gcMark(x->data.c.first);
       x = x->data.c.rest;
     }
+  } else if (x->type == MACRO) {
+    while (x != Nil()) {
+      x->marked = true;
+      gcMark(x->data.c.first);
+      x = x->data.c.rest;
+    }
   } else {
     x->marked = true;
   }

@@ -1,3 +1,5 @@
+#ifndef MEM/H
+#define MEM/H
 enum { INT, SYMBOL, CONS, FN, MACRO, CORE };
 
 typedef struct _cell {
@@ -20,3 +22,5 @@ cell Nil();
 void gcInit(int);
 void gcFree();
 cell gcAlloc();
+
+#endif

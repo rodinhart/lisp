@@ -1,3 +1,17 @@
+(def nil (quote ()))
+
+; (list 2 3) -> (cons 2 (list 3)) -> (cons 2 (cons 3 (list)))
+(def list (macro x
+  (if x
+    (cons (quote cons)
+      (cons (first x)
+        (cons (cons (quote list) (rest x)) nil)
+      )
+    )
+    nil
+  )
+))
+
 (def defn (macro x (list
   (quote def) (first x) (list (quote fn) (first (rest x)) (first (rest (rest x))))
 )))

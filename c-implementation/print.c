@@ -27,5 +27,9 @@ void print(cell x) {
     printf("[FN ");
     print(x->data.c.first);
     printf("]");
+  } else if (x->type == MACRO) {
+    printf("[MACRO ");
+    print(x->data.c.first);
+    printf("]");
   }
 }
