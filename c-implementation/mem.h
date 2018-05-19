@@ -1,21 +1,20 @@
-enum { INT, SYMBOL, CONS, CORE };
+enum { INT, SYMBOL, CONS, FN, MACRO, CORE };
 
 typedef struct _cell {
   union {
     int i;
-    struct {
-      int i;
-      struct _cell *body;
-    } core;
     char s[16];
     struct {
       struct _cell *first;
       struct _cell *rest;
     } c;
+    struct _cell *(*fn)(struct _cell *, struct _cell *);
   } data;
-  unsigned int type : 2;
+  unsigned int type : 4;
   unsigned int marked : 1;
 } *cell;
+
+typedef cell (*core)(cell, cell);
 
 cell Nil();
 void gcInit(int);

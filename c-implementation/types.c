@@ -31,12 +31,20 @@ cell Cons(cell first, cell rest) {
   return xs;
 }
 
-// Core :: int -> Cell -> Cell
-cell Core(int i, cell body) {
+cell Fn(cell fn, cell scope) {
+  cell xs = gcAlloc();
+  xs->type = FN;
+  xs->data.c.first = fn;
+  xs->data.c.rest = scope;
+
+  return xs;
+}
+
+// Core :: Func -> Cell
+cell Core(core fn) {
   cell x = gcAlloc();
   x->type = CORE;
-  x->data.core.i = i;
-  x->data.core.body = body;
+  x->data.fn = fn;
 
   return x;
 }

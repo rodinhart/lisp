@@ -22,10 +22,10 @@ void print(cell x) {
   } else if (x->type == SYMBOL) {
     printf("%s", x->data.s);
   } else if (x->type == CORE) {
-    printf("FN%i", x->data.core.i);
-    // if (x->data.core.body != Nil()) {
-    //   printf(" ");
-    //   print(x->data.core.body);
-    // }
+    printf("[CORE]");
+  } else if (x->type == FN) {
+    printf("[FN ");
+    print(x->data.c.first);
+    printf("]");
   }
 }
