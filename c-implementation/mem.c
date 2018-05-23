@@ -17,19 +17,19 @@ cell Nil() {
 void gcMark(cell x) {
   if (x == Nil()) return;
   if (x->type == CONS) {
-    while (x != Nil()) {
+    while (x != Nil() && !x->marked) {
       x->marked = true;
       gcMark(x->data.c.first);
       x = x->data.c.rest;
     }
   } else if (x->type == FN) {
-    while (x != Nil()) {
+    while (x != Nil() && !x->marked) {
       x->marked = true;
       gcMark(x->data.c.first);
       x = x->data.c.rest;
     }
   } else if (x->type == MACRO) {
-    while (x != Nil()) {
+    while (x != Nil() && !x->marked) {
       x->marked = true;
       gcMark(x->data.c.first);
       x = x->data.c.rest;

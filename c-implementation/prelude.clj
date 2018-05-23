@@ -1,20 +1,33 @@
 (def nil (quote ()))
 
-; (list 2 3) -> (cons 2 (list 3)) -> (cons 2 (cons 3 (list)))
-(def list (macro x
-  (if x
-    (cons (quote cons)
-      (cons (first x)
-        (cons (cons (quote list) (rest x)) nil)
-      )
-    )
-    nil
+(def map (fn (f xs)
+  (if xs
+    (cons (f (first xs)) (map f (rest xs)))
+    xs
   )
 ))
 
-(def defn (macro x (list
-  (quote def) (first x) (list (quote fn) (first (rest x)) (first (rest (rest x))))
-)))
+(def macroexpand (macro x
+  (cons (quote quote)
+    (cons (eval (first x))
+      nil)
+    )
+  )
+))
+
+(def list (macro x
+  (cons (quote map)
+    (cons (quote eval)
+      (cons (cons (quote quote) (cons x nil)) nil)
+    )
+  )
+))
+
+(def defn (macro x
+  (list (quote def) (first x)
+    (list (quote fn) (first (rest x)) (first (rest (rest x))))
+  )
+))
 
 (defn last (xs)
   (if (rest xs)
@@ -22,16 +35,6 @@
     (first xs)
   )
 )
-
-(defn map (f xs)
-  (if xs
-    (cons (f (first xs)) (map f (rest xs)))
-    xs
-  )
-)
-(defn sq (x) (* x x))
-
-(map sq (list 1 2 3 4 5 6 7 8 9 10))
 
 ; (first (list ...x))
 (def do (macro x (list

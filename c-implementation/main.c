@@ -33,7 +33,7 @@ cell eval(cell scope, cell x) {
         cell names = first(body);
         cell newScope = op->data.c.rest;
         while (names != Nil()) {
-          newScope = Cons(first(names), Cons(eval(scope, first(args)), scope));
+          newScope = assoc(newScope, first(names), eval(scope, first(args)));
           names = rest(names);
           args = rest(args);
         }
@@ -43,7 +43,7 @@ cell eval(cell scope, cell x) {
       } else if (op->type == MACRO) {
         cell body = op->data.c.first;
         cell name = first(body);
-        cell newScope = assoc(op->data.c.rest, name, first(args));
+        cell newScope = assoc(op->data.c.rest, name, args);
         x = eval(newScope, first(rest(body)));
       } else if (op->type == SYMBOL) {
         if (eq(op->data.s, "FN")) {
@@ -59,7 +59,7 @@ cell eval(cell scope, cell x) {
           return first(args);
         } else if (eq(op->data.s, "DEF")) {
           cell value = eval(scope, first(rest(args)));
-          GC_SCOPE = assoc(GC_SCOPE, first(args), value);
+          push(GC_SCOPE, first(args), value);
 
           return value;
         } else if (eq(op->data.s, "MACRO")) {

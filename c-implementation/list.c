@@ -12,3 +12,12 @@ cell rest(cell x) {
 cell assoc(cell m, cell k, cell v) {
   return Cons(k, Cons(v, m));
 }
+
+void push(cell m, cell k, cell v) {
+  while (rest(rest(m)) != Nil()) {
+    m = rest(rest(m));
+  }
+
+  m = rest(m);
+  m->data.c.rest = Cons(k, Cons(v, Nil()));
+}
