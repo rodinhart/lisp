@@ -75,6 +75,7 @@ cell eval(cell scope, cell x) {
       }
 
       printf("No such symbol. %s\n", x->data.s);
+      exit(1);
       return Nil();
     } else {
       return x;
