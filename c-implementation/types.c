@@ -22,11 +22,11 @@ cell Symbol(char *s) {
 } 
 
 // Cons :: Cell -> Cell -> Cell
-cell Cons(cell first, cell rest) {
+cell Cons(cell car, cell cdr) {
   cell xs = gcAlloc();
   xs->type = CONS;
-  xs->data.c.first = first;
-  xs->data.c.rest = rest;
+  xs->data.c.car = car;
+  xs->data.c.cdr = cdr;
 
   return xs;
 }
@@ -34,8 +34,8 @@ cell Cons(cell first, cell rest) {
 cell Fn(cell fn, cell scope) {
   cell xs = gcAlloc();
   xs->type = FN;
-  xs->data.c.first = fn;
-  xs->data.c.rest = scope;
+  xs->data.c.car = fn;
+  xs->data.c.cdr = scope;
 
   return xs;
 }
@@ -43,8 +43,8 @@ cell Fn(cell fn, cell scope) {
 cell Macro(cell fn, cell scope) {
   cell xs = gcAlloc();
   xs->type = MACRO;
-  xs->data.c.first = fn;
-  xs->data.c.rest = scope;
+  xs->data.c.car = fn;
+  xs->data.c.cdr = scope;
 
   return xs;
 }

@@ -33,8 +33,13 @@ cell readSymbol() {
   return Symbol(buf);
 }
 
+void readComment() {
+  while ((C = getc(stdin)) != '\n');
+  readSpace();
+}
+
 cell readCons() {
-  cell xs = Nil(), c = Nil(), first;
+  cell xs = Nil(), c = Nil(), car;
 
   do {
     readSpace();
@@ -48,12 +53,12 @@ cell readCons() {
       return xs;
     }
 
-    first = readCell();
+    car = readCell();
     if (!c) {
-      xs = c = Cons(first, Nil());
+      xs = c = Cons(car, Nil());
     } else {
-      c->data.c.rest = Cons(first, Nil());
-      c = c->data.c.rest;
+      c->data.c.cdr = Cons(car, Nil());
+      c = c->data.c.cdr;
     }
 
     if (C == ')') {
@@ -68,6 +73,9 @@ cell readCell() {
     return readInt();
   } else if (C == '(') {
     return readCons();
+  } else if (C == ';') {
+    readComment();
+    return readCell();
   } else if (C != ')') {
     return readSymbol();
   }

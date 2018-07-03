@@ -19,20 +19,20 @@ void gcMark(cell x) {
   if (x->type == CONS) {
     while (x != Nil() && !x->marked) {
       x->marked = true;
-      gcMark(x->data.c.first);
-      x = x->data.c.rest;
+      gcMark(x->data.c.car);
+      x = x->data.c.cdr;
     }
   } else if (x->type == FN) {
     while (x != Nil() && !x->marked) {
       x->marked = true;
-      gcMark(x->data.c.first);
-      x = x->data.c.rest;
+      gcMark(x->data.c.car);
+      x = x->data.c.cdr;
     }
   } else if (x->type == MACRO) {
     while (x != Nil() && !x->marked) {
       x->marked = true;
-      gcMark(x->data.c.first);
-      x = x->data.c.rest;
+      gcMark(x->data.c.car);
+      x = x->data.c.cdr;
     }
   } else {
     x->marked = true;
@@ -50,7 +50,7 @@ void gcRun(cell scope) {
       x->marked = 0;
     } else {
       x->type = CONS;
-      x->data.c.rest = GC_FREE;
+      x->data.c.cdr = GC_FREE;
       GC_FREE = x;
     }
   }
@@ -74,7 +74,7 @@ int count(cell xs) {
   int count = 0;
   while (xs != Nil()) {
     count += 1;
-    xs = xs->data.c.rest;
+    xs = xs->data.c.cdr;
   }
 
   return count;
@@ -94,7 +94,7 @@ cell gcAlloc() {
   }
 
   cell xs = GC_FREE;
-  GC_FREE = xs->data.c.rest;
+  GC_FREE = xs->data.c.cdr;
 
   return xs;
 }

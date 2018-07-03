@@ -22,44 +22,45 @@ cell eval(cell scope, cell x) {
     if (x == Nil()) return Nil();
 
     if (x->type == CONS) {
-      cell op = eval(scope, x->data.c.first);
+      cell op = eval(scope, x->data.c.car);
       if (op == Nil()) return Nil();
 
-      cell args = rest(x);
+      cell args = cdr(x);
       if (op->type == CORE) {
         return op->data.fn(args, scope);
       } else if (op->type == FN) {
-        cell body = op->data.c.first;
-        cell names = first(body);
-        cell newScope = op->data.c.rest;
+        cell body = op->data.c.car;
+        cell names = car(body);
+        cell newScope = op->data.c.cdr;
         while (names != Nil()) {
-          newScope = assoc(newScope, first(names), eval(scope, first(args)));
-          names = rest(names);
-          args = rest(args);
+          newScope = assoc(newScope, car(names), eval(scope, car(args)));
+          names = cdr(names);
+          args = cdr(args);
         }
 
         scope = newScope;
-        x = first(rest(body));
+        x = car(cdr(body));
       } else if (op->type == MACRO) {
-        cell body = op->data.c.first;
-        cell name = first(body);
-        cell newScope = assoc(op->data.c.rest, name, args);
-        x = eval(newScope, first(rest(body)));
+        cell body = op->data.c.car;
+        cell name = car(body);
+        cell newScope = assoc(op->data.c.cdr, name, args);
+        x = eval(newScope, car(cdr(body)));
+        // return x;
       } else if (op->type == SYMBOL) {
         if (eq(op->data.s, "FN")) {
           return Fn(args, scope);
         } else if (eq(op->data.s, "IF")) {
-          x = eval(scope, first(args));
+          x = eval(scope, car(args));
           if (x != Nil()) {
-            x = first(rest(args));
+            x = car(cdr(args));
           } else {
-            x = first(rest(rest(args)));
+            x = car(cdr(cdr(args)));
           }
         } else if (eq(op->data.s, "QUOTE")) {
-          return first(args);
+          return car(args);
         } else if (eq(op->data.s, "DEF")) {
-          cell value = eval(scope, first(rest(args)));
-          push(GC_SCOPE, first(args), value);
+          cell value = eval(scope, car(cdr(args)));
+          push(GC_SCOPE, car(args), value);
 
           return value;
         } else if (eq(op->data.s, "MACRO")) {
@@ -70,12 +71,12 @@ cell eval(cell scope, cell x) {
       if (eq(x->data.s, "scope")) return scope;
       cell c = scope;
       while (c != Nil()) {
-        if (eq(first(c)->data.s, x->data.s)) return first(rest(c));
-        c = rest(rest(c));
+        if (eq(car(c)->data.s, x->data.s)) return car(cdr(c));
+        c = cdr(cdr(c));
       }
 
       printf("No such symbol. %s\n", x->data.s);
-      exit(1);
+      // exit(1);
       return Nil();
     } else {
       return x;

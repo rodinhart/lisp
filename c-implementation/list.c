@@ -1,12 +1,12 @@
 #include "mem.h"
 #include "types.h"
 
-cell first(cell x) {
-  return x->data.c.first; // TODO check for Cons
+cell car(cell x) {
+  return x->data.c.car; // TODO check for Cons
 }
 
-cell rest(cell x) {
-  return x->data.c.rest; // TODO check for Cons
+cell cdr(cell x) {
+  return x->data.c.cdr; // TODO check for Cons
 }
 
 cell assoc(cell m, cell k, cell v) {
@@ -14,10 +14,10 @@ cell assoc(cell m, cell k, cell v) {
 }
 
 void push(cell m, cell k, cell v) {
-  while (rest(rest(m)) != Nil()) {
-    m = rest(rest(m));
+  while (cdr(cdr(m)) != Nil()) {
+    m = cdr(cdr(m));
   }
 
-  m = rest(m);
-  m->data.c.rest = Cons(k, Cons(v, Nil()));
+  m = cdr(m);
+  m->data.c.cdr = Cons(k, Cons(v, Nil()));
 }

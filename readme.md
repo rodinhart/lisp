@@ -14,10 +14,12 @@ To exit the REPL, type `.exit`.
 
 ### TODO
 
-* def to return nil
-* Allow comments
-* Make Error type, and more checking
-* Make fn body multi-arity
-* read to handle EOF (for running files)
-* destructuring
-* tests
+- def to return nil
+- Implement or using maco
+- Fix macros!
+- Allow comments
+- Make Error type, and more checking
+- Make fn body multi-arity
+- read to handle EOF (for running files)
+- destructuring
+- tests

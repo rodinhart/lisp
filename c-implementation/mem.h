@@ -7,8 +7,8 @@ typedef struct _cell {
     int i;
     char s[16];
     struct {
-      struct _cell *first;
-      struct _cell *rest;
+      struct _cell *car;
+      struct _cell *cdr;
     } c;
     struct _cell *(*fn)(struct _cell *, struct _cell *);
   } data;
