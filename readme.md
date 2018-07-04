@@ -14,10 +14,9 @@ To exit the REPL, type `.exit`.
 
 ### TODO
 
-- def to return nil
-- Implement or using maco
+- Implement OR using maco
 - Fix macros!
-- Allow comments
+- GC while evaluation, requires assembly with stack
 - Make Error type, and more checking
 - Make fn body multi-arity
 - read to handle EOF (for running files)

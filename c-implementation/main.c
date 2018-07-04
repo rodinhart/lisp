@@ -62,7 +62,7 @@ cell eval(cell scope, cell x) {
           cell value = eval(scope, car(cdr(args)));
           push(GC_SCOPE, car(args), value);
 
-          return value;
+          return Nil();
         } else if (eq(op->data.s, "MACRO")) {
           return Macro(args, scope);
         }
@@ -76,7 +76,7 @@ cell eval(cell scope, cell x) {
       }
 
       printf("No such symbol. %s\n", x->data.s);
-      // exit(1);
+
       return Nil();
     } else {
       return x;
@@ -87,7 +87,7 @@ cell eval(cell scope, cell x) {
 // main :: () -> Int
 int main() {
   GC_SCOPE = Nil();
-  gcInit(100000);
+  gcInit(1000000);
 
   GC_SCOPE = Nil();
   GC_SCOPE = assoc(GC_SCOPE, Symbol("fn"), Symbol("FN"));

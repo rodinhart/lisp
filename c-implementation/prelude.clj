@@ -1,5 +1,6 @@
 (def nil (quote ()))
 
+; (defn sq (x) (* x x)) => (def sq (fn (x) (* x x)))
 (def defn (macro x
   (cons (quote def)
     (cons (car x)
@@ -29,7 +30,6 @@
   )
 ))
 
-(def first (fn (s) (car s)))
 (defn first (s) (car s))
 (defn rest (s) ((cdr s)))
 
@@ -69,16 +69,19 @@
 (seq2list (take 10 fib))
 (seq2list (take 10 (drop 10 fib)))
 
-
-
-
-
-(def map (fn (f xs)
-  (if xs
-    (cons (f (car xs)) (map f (cdr xs)))
-    xs
+(defn map (f s)
+  (if s
+    (seq (f (first s)) (map f (rest s)))
+    nil
   )
-))
+)
+
+
+
+
+
+
+
 
 (def list (macro x
   (cons (quote map)
