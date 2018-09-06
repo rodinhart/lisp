@@ -33,6 +33,12 @@ const evalǃ = _scope => x => {
         case "MACRO":
           return concat(x, [scope, null])
 
+        case "TIME": // temp
+          const time = new Date().getTime()
+          const r = evalǃ(scope)(x[1])
+          console.log(`${new Date().getTime() - time} ms`)
+          return r
+
         default:
           if (op instanceof Array && op[0] === "lambda") {
             // (lambda (x y) (+ x y) scope)

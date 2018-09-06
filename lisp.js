@@ -16,14 +16,14 @@ const core = require("./core.js")
 
 thread(
   String(fs.readFileSync("./core.clj")),
+  s => `(${s})`,
   read,
-  fold((r, x) => {
-    // console.log("\nx", prn(x))
-    const ex = macroexpand(core)(x)
-    // console.log("y", prn(ex))
 
+  fold((r, x) => {
+    const ex = macroexpand(core)(x)
     return evalǃ(core)(ex)
   }, null),
   prn,
+
   console.log
 )

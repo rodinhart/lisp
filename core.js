@@ -7,6 +7,7 @@ const core = {
   define: "DEFINE",
   quote: "QUOTE",
   macro: "MACRO",
+  time: "TIME", // temp
 
   "+": scope => fold((r, x) => r + x, 0),
   "-": scope => xs => xs[0] - xs[1][0],

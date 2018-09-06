@@ -13,9 +13,17 @@ const length = fold((r, x) => r + 1, 0)
 
 const map = f => xs => (xs !== null ? [f(xs[0]), map(f)(xs[1])] : null)
 
+const toArray = xs =>
+  fold((r, x) => {
+    r.push(x)
+
+    return r
+  }, [])(xs)
+
 module.exports = {
   concat,
   fold,
   length,
-  map
+  map,
+  toArray
 }
