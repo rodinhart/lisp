@@ -1,5 +1,5 @@
-const { fold } = require("./list.js")
-const prn = require("./print.js")
+const { fold } = require("../list.js")
+const prn = require("../print.js")
 
 const core = {
   lambda: "LAMBDA",

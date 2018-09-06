@@ -6,10 +6,10 @@ const fs = require("fs")
 // make prn pretty print multiline
 // scope with parent for easier printing?
 
-const { thread } = require("./lang.js")
-const { fold } = require("./list.js")
-const read = require("./read.js")
-const prn = require("./print.js")
+const { thread } = require("../lang.js")
+const { fold } = require("../list.js")
+const read = require("../read.js")
+const prn = require("../print.js")
 const evalǃ = require("./eval.js")
 const macroexpand = require("./macroexpand.js")
 const core = require("./core.js")

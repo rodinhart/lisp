@@ -1,6 +1,6 @@
-const { assert } = require("./lang.js")
-const { fold, map, toArray } = require("./list.js")
-const read = require("./read.js")
+const { assert } = require("../lang.js")
+const { fold, map, toArray } = require("../list.js")
+const read = require("../read.js")
 
 const compile = x => {
   if (!(x instanceof Array)) return x

@@ -1,6 +1,6 @@
-const { assert } = require("./lang.js")
-const { concat, length, map } = require("./list.js")
-const read = require("./read.js")
+const { assert } = require("../lang.js")
+const { concat, length, map } = require("../list.js")
+const read = require("../read.js")
 const core = require("./core.js")
 
 const evalǃ = _scope => x => {

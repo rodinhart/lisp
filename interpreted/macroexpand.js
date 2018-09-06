@@ -1,6 +1,6 @@
-const { assert, thread } = require("./lang.js")
-const read = require("./read.js")
-const prn = require("./print.js")
+const { assert, thread } = require("../lang.js")
+const read = require("../read.js")
+const prn = require("../print.js")
 const evalǃ = require("./eval.js")
 const core = require("./core.js")
 
