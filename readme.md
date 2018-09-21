@@ -1,8 +1,15 @@
 ## LISP
 
-An implementation of LISP written in C. The aim is to keep the core small and understandable, and provide a good interop (FFI) with C.
+Lisp implementation in JavaScript that compiles to JavaScript and then evals the resulting code.
 
-### Running
+### TODO
+
+- how to include better function names, e.g. `atom?`, `+`
+- Clean out this readme and c implementation?
+
+### C implementation
+
+An implementation of LISP written in C. The aim is to keep the core small and understandable, and provide a good interop (FFI) with C.
 
 ```bash
 ./run.bat
@@ -12,7 +19,7 @@ Or something similar.
 
 To exit the REPL, type `.exit`.
 
-### TODO
+#### TODO
 
 - Implement OR using maco
 - Fix macros!

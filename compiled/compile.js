@@ -1,27 +1,38 @@
 const { assert } = require("../lang.js")
-const { fold, map, toArray } = require("../list.js")
+const { fold, map } = require("../list.js")
 const read = require("../read.js")
 
 const compile = x => {
   if (!(x instanceof Array)) return x
 
   let op = x[0]
-  if (op === "lambda") {
+  if (op === "lambda" || op === "macro") {
+    // (lambda (x y) (f x y))
+    const args = []
     const params = []
+    let nth = ""
     let p = x[1][0]
     while (p !== null) {
       if (p instanceof Array) {
-        params.push(p[0])
+        args.push(p[0])
+        params.push(`a${nth}[0]`)
+        nth += "[1]"
         p = p[1]
       } else {
-        params.push(`...${p}`)
+        args.push(p)
+        params.push(`a${nth}`)
         p = null
       }
     }
 
     const body = compile(x[1][1][0])
 
-    return `(${params.join(", ")}) => ${body}`
+    let code = `(a => ((${args.join(", ")}) => ${body})(${params.join(", ")}))`
+    if (op === "macro") {
+      code = `Object.assign(${code}, {macro:true})`
+    }
+
+    return code
   } else if (op === "if") {
     const condition = compile(x[1][0])
     const consequent = compile(x[1][1][0])
@@ -31,52 +42,73 @@ const compile = x => {
     const name = x[1][0]
     const value = compile(x[1][1][0])
     return `global["${name}"] = (${value}), "${name}"`
-  } else if (op === "for") {
-    let r = ["{"]
+  } else if (op === "loop") {
     const names = []
+    const inits = []
     let p = x[1][0]
     while (p !== null) {
-      r.push(`let ${p[0]} = (${compile(p[1][0])})`)
       names.push(p[0])
+      inits.push(compile(p[1][0]))
       p = p[1][1]
     }
 
-    r.push(`while (${compile(x[1][1][0])}) {`)
+    const body = compile(x[1][1][0])
 
-    p = x[1][1][1][0]
-    while (p !== null) {
-      r.push(`${names.shift()} = (${compile(p[0])})`)
-      p = p[1]
-    }
+    return `{
+      ${names.map((name, i) => `let ${name} = (${inits[i]})`).join("\n")}
+      const recur = (${names.map(name => "_" + name).join(",")}) => {
+        ${names.map(name => `${name} = ${"_" + name}`).join("\n")}
 
-    r.push("}")
+        return "__RECUR__"
+      }
+      let __RESULT__
+      do {
+        __RESULT__ = (${body})
+      } while (__RESULT__ === "__RECUR__")
 
-    r.push(`(${compile(x[1][1][1][1][0])})`)
-
-    r.push("}")
-
-    return r.join("\n")
+      __RESULT__
+    }`
+  } else if (op === "quote") {
+    return JSON.stringify(x[1][0])
   }
 
   op = compile(op)
-  const args = toArray(map(compile)(x[1]))
+  const params = map(compile)(x[1])
 
-  return `(${op})(${args.join(", ")})`
+  const toList = xs =>
+    xs === null
+      ? null
+      : xs instanceof Array
+        ? `[${xs[0]}, ${toList(xs[1])}]`
+        : xs
+
+  return `(${op})(${toList(params)})`
 }
 
 assert(compile(42) === 42)
 assert(compile("x") === "x")
 
-assert(compile(read("(lambda (x y) (f y x))")) === "(x, y) => (f)(y, x)")
-assert(compile(read("(lambda x x)")) === "(...x) => x")
-assert(compile(read("(lambda () 42)")) === "() => 42")
+assert(
+  compile(read("(lambda (x y) (f y x))")) ===
+    "(a => ((x, y) => (f)([y, [x, null]]))(a[0], a[1][0]))"
+)
+assert(compile(read("(lambda x x)")) === "(a => ((x) => x)(a))")
+assert(compile(read("(lambda () 42)")) === "(a => (() => 42)())")
 
-assert(compile(read("(if x 42 (f 1 2))")) === "((x) ? (42) : ((f)(1, 2)))")
+assert(
+  compile(read("(if x 42 (f 1 2))")) === "((x) ? (42) : ((f)([1, [2, null]])))"
+)
 
 assert(compile(read("(define x 42)")) === `global["x"] = (42), "x"`)
 
-// assert(compile(read("(for (n 10 a 0) (gt n 0) ((sub n 1) (add a 1)) a)")))
+// assert(
+//   compile(read("(loop (n 10 a 0) (if (> n 0) (recur (+ n 1) (- a 1)) a))"))
+// )
 
-assert(compile(read("(f x y)")) === "(f)(x, y)")
+assert(
+  compile(read("(quote (1 (add 1 1)))")) === `[1,[["add",[1,[1,null]]],null]]`
+)
+
+assert(compile(read("(f x y)")) === "(f)([x, [y, null]])")
 
 module.exports = compile
