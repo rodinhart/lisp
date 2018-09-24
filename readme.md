@@ -5,6 +5,7 @@ Lisp implementation in JavaScript that compiles to JavaScript and then evals the
 ### TODO
 
 - how to include better function names, e.g. `atom?`, `+`
+- follow js calling conventions?
 - Clean out this readme and c implementation?
 
 ### C implementation

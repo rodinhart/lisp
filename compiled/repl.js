@@ -16,7 +16,7 @@ const cdr = xs => xs[0][1]
 const cons = params => [params[0], params[1][0]]
 const isAtom = xs => !(xs[0] instanceof Array)
 
-const DEBUG = false
+const DEBUG = true
 
 thread(
   String(fs.readFileSync("./core.clj")),

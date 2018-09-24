@@ -45,19 +45,27 @@ const compile = x => {
   } else if (op === "loop") {
     const names = []
     const inits = []
+    const vals = []
+    let val = ""
     let p = x[1][0]
     while (p !== null) {
       names.push(p[0])
       inits.push(compile(p[1][0]))
+      vals.push(`t${val}[0]`)
+      val += "[1]"
       p = p[1][1]
     }
 
+    const lets = names
+      .map((name, i) => `let ${name} = (${inits[i]})`)
+      .join("\n")
+    const assigns = names.map((name, i) => `${name} = ${vals[i]}`).join("\n")
     const body = compile(x[1][1][0])
 
-    return `{
-      ${names.map((name, i) => `let ${name} = (${inits[i]})`).join("\n")}
-      const recur = (${names.map(name => "_" + name).join(",")}) => {
-        ${names.map(name => `${name} = ${"_" + name}`).join("\n")}
+    return `(() => {
+      ${lets}
+      const recur = t => {
+        ${assigns}
 
         return "__RECUR__"
       }
@@ -66,10 +74,20 @@ const compile = x => {
         __RESULT__ = (${body})
       } while (__RESULT__ === "__RECUR__")
 
-      __RESULT__
-    }`
+      return __RESULT__
+    })()`
   } else if (op === "quote") {
     return JSON.stringify(x[1][0])
+  } else if (op === "time") {
+    return `(() => {
+      let __TIME__ = new Date().getTime()
+      const __RESULT__ = (${compile(x[1][0])})
+      __TIME__ = new Date().getTime() - __TIME__
+      console.log(__TIME__ + " ms")
+      return __RESULT__
+    })()`
+  } else if (op === "get") {
+    return `((${compile(x[1][0])})["${compile(x[1][1][0])}"])`
   }
 
   op = compile(op)
