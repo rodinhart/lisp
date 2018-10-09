@@ -1,20 +1,30 @@
 const { assert } = require("./lang.js")
+const { car, cdr, Cons, isCons } = require("./list.js")
 
 const prn = x => {
-  if (x instanceof Array) {
+  if (x == null) return "nil"
+
+  if (isCons(x)) {
     const r = []
     while (x !== null) {
-      if (x instanceof Array) {
-        r.push(prn(x[0]))
-        x = x[1]
+      if (isCons(x)) {
+        r.push(prn(car(x)))
+        x = cdr(x)
       } else {
         r.push(".")
         r.push(prn(x))
         x = null
       }
     }
+
     return `(${r.join(" ")})`
-  } else if (x && typeof x === "object") {
+  }
+
+  if (x instanceof Array) {
+    return `[${x.map(prn).join(",")}]`
+  }
+
+  if (x && typeof x === "object") {
     return `{${Object.entries(x)
       .filter(
         ([key, val]) =>
@@ -24,14 +34,16 @@ const prn = x => {
       .join(", ")}}`
   }
 
-  return x === null ? "()" : String(x)
+  return String(x)
 }
 
+assert(prn(null) === "nil")
 assert(prn(3) === "3")
 assert(prn("a") === "a")
-assert(prn([1, [2, [["a", null], null]]]) === "(1 2 (a))")
-assert(prn(null) === "()")
-assert(prn([1, 2]) === "(1 . 2)")
-assert(prn([1, [[2, 3], 4]]) === "(1 (2 . 3) . 4)")
+
+assert(prn(Cons(2, Cons(3, Cons(5, null)))) === "(2 3 5)")
+assert(prn(Cons(1, 2)) === "(1 . 2)")
+
+assert(prn([1, [2, null]]) === "[1,[2,nil]]")
 
 module.exports = prn

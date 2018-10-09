@@ -1,4 +1,7 @@
 const { assert, identity } = require("./lang.js")
+const { Cons, toList } = require("./list.js")
+
+const toCons = x => (x instanceof Array ? Cons(x[0], toCons(x[1])) : x)
 
 const read = s => {
   const _ = x => {
@@ -19,8 +22,10 @@ const read = s => {
 
       if (x.shift() !== ")") throw new Error("Missing )")
 
-      return r[1]
+      return toCons(r[1])
     }
+
+    if (f === "nil") return null
 
     return String(Number(f)) === f ? Number(f) : f
   }
@@ -35,11 +40,12 @@ const read = s => {
   )
 }
 
+assert(read("()") === null)
 assert(read("3") === 3, 3)
 assert(read("hello") === "hello")
-assert(JSON.stringify(read("(1 (a) 3)")) === `[1,[["a",null],[3,null]]]`)
-assert(read("()") === null)
-assert(JSON.stringify(read("(1 2 . 3)")) === "[1,[2,3]]")
-assert(JSON.stringify(read("(1 . (2 . (3 . ())))")) === "[1,[2,[3,null]]]")
+
+assert(String(read("(1 2)")) === "(1 . (2 . nil))")
+assert(String(read("(1 2 . 3)")) === "(1 . (2 . 3))")
+assert(String(read("(1 (a) 3)")) === "(1 . ((a . nil) . (3 . nil)))")
 
 module.exports = read

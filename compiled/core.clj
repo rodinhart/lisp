@@ -1,5 +1,9 @@
-(define nil ())
-(define list (lambda x x))
+(define _list (lambda (x)
+               (if (seq x)
+                (cons (first x) (_list (rest x)))
+                nil)))
+
+(define list (lambda x (_list x)))
 
 (define concat (lambda (xs ys)
                 (if xs
@@ -13,19 +17,17 @@
                     (if (isAtom pat)
                       (cons arg ())
                       (concat
-                        (destruct (car pat) (list (quote car) arg))
-                        (destruct (cdr pat) (list (quote cdr) arg))))
-      
-    
-                    nil)))
+                        (destruct (first pat) (list (quote first) arg))
+                        (destruct (rest pat) (list (quote rest) arg))))
+                   nil)))
 
 (define flatten (lambda (pat)
                  (if pat
                    (if (isAtom pat)
                      (cons pat ())
                      (concat
-                       (flatten (car pat))
-                       (flatten (cdr pat))))
+                       (flatten (first pat))
+                       (flatten (rest pat))))
                    nil)))
 
 (define fn (macro (params body)
@@ -36,18 +38,17 @@
                 (list
                   (quote lambda)
                   (flatten params)
-                  body)
-      
+                  body)      
                 (destruct params (quote t))))))
 
 (define defn (macro x
               (list
                 (quote define)
-                (car x)
+                (first x)
                 (list
                   (quote fn)
-                  (car (cdr x))
-                  (car (cdr (cdr x)))))))
+                  (first (rest x))
+                  (first (rest (rest x)))))))
 
 (define defmacro (macro (name params body)
                   (list
@@ -58,35 +59,39 @@
                       params
                       body))))
     
-(defmacro seq (x y)
- (list (quote cons) x (list (quote lambda) () y)))
+; (defn sq (x) (add x x))
 
-(defn first (x) (car x))
-(defn rest (z) ((cdr z)))
-(defn reify (x) (if x (cons (first x) (reify (rest x))) nil)) ; should be into?
+; (sq 4)
 
-(defn take (n x)
- (if (gt n 0)
-  (seq (first x) (take (sub n 1) (rest x)))
-  nil))
+; (defmacro seq (x y)
+;  (list (quote cons) x (list (quote lambda) () y)))
 
-(defn drop (n x)
- (if (gt n 0)
-  (drop (sub n 1) (rest x))
-  x))
+; (defn first (x) (car x))
+; (defn rest (z) ((cdr z)))
+; (defn reify (x) (if x (cons (first x) (reify (rest x))) nil)) ; should be into?
 
-(defn zip (f x y)
- (if x
-  (seq (f (first x) (first y)) (zip f (rest x) (rest y)))
-  nil))
+; (defn take (n x)
+;  (if (gt n 0)
+;   (seq (first x) (take (sub n 1) (rest x)))
+;   nil))
 
-(define fib
- (seq 1 (seq 2 (zip add fib (rest fib))))) ; slow, no caching :(
+; (defn drop (n x)
+;  (if (gt n 0)
+;   (drop (sub n 1) (rest x))
+;   x))
 
-(defn sum (N)
-          (loop (n N a 0) ; clash of n otherwise
-           (if (gt n 0)
-            (recur (sub n 1) (add a 1))
-            a)))
+; (defn zip (f x y)
+;  (if x
+;   (seq (f (first x) (first y)) (zip f (rest x) (rest y)))
+;   nil))
 
-((get Math sqrt) 2) ; doesn't work because of LISP calling conventions
+; (define fib
+;  (seq 1 (seq 2 (zip add fib (rest fib))))) ; slow, no caching :(
+
+; (defn sum (N)
+;           (loop (n N a 0) ; clash of n otherwise
+;            (if (gt n 0)
+;             (recur (sub n 1) (add a 1))
+;             a)))
+
+; ((get Math sqrt) 2) ; doesn't work because of LISP calling conventions

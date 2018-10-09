@@ -1,70 +1,68 @@
 const { assert } = require("../lang.js")
-const { fold, map } = require("../list.js")
+const { car, cdr, map, isCons, toArray } = require("../list.js")
 const read = require("../read.js")
 
 const compile = x => {
-  if (!(x instanceof Array)) return x
+  if (!isCons(x)) return x
 
-  let op = x[0]
+  let op = car(x)
   if (op === "lambda" || op === "macro") {
     // (lambda (x y) (f x y))
     const args = []
-    const params = []
-    let nth = ""
-    let p = x[1][0]
+    let p = car(cdr(x))
     while (p !== null) {
-      if (p instanceof Array) {
-        args.push(p[0])
-        params.push(`a${nth}[0]`)
-        nth += "[1]"
-        p = p[1]
+      if (isCons(p)) {
+        args.push(car(p))
+        p = cdr(p)
       } else {
-        args.push(p)
-        params.push(`a${nth}`)
+        args.push(`...${p}`)
         p = null
       }
     }
 
-    const body = compile(x[1][1][0])
+    const body = compile(car(cdr(cdr(x))))
 
-    let code = `(a => ((${args.join(", ")}) => ${body})(${params.join(", ")}))`
+    let code = `((${args.join(", ")}) => ${body})`
     if (op === "macro") {
       code = `Object.assign(${code}, {macro:true})`
     }
 
     return code
-  } else if (op === "if") {
-    const condition = compile(x[1][0])
-    const consequent = compile(x[1][1][0])
-    const alternative = compile(x[1][1][1][0])
+  }
+
+  if (op === "if") {
+    const condition = compile(car(cdr(x)))
+    const consequent = compile(car(cdr(cdr(x))))
+    const alternative = compile(car(cdr(cdr(cdr(x)))))
     return `((${condition}) ? (${consequent}) : (${alternative}))`
-  } else if (op === "define") {
-    const name = x[1][0]
-    const value = compile(x[1][1][0])
+  }
+
+  if (op === "define") {
+    const name = car(cdr(x))
+    const value = compile(car(cdr(cdr(x))))
     return `global["${name}"] = (${value}), "${name}"`
-  } else if (op === "loop") {
+  }
+
+  if (op === "loop") {
     const names = []
     const inits = []
-    const vals = []
-    let val = ""
-    let p = x[1][0]
+    let p = car(cdr(x))
     while (p !== null) {
-      names.push(p[0])
-      inits.push(compile(p[1][0]))
-      vals.push(`t${val}[0]`)
-      val += "[1]"
-      p = p[1][1]
+      names.push(car(p))
+      inits.push(compile(car(cdr(p))))
+      p = cdr(cdr(p))
     }
 
     const lets = names
       .map((name, i) => `let ${name} = (${inits[i]})`)
       .join("\n")
-    const assigns = names.map((name, i) => `${name} = ${vals[i]}`).join("\n")
-    const body = compile(x[1][1][0])
+    const args = names.map(arg => `_${arg}`).join(", ")
+    const assigns = names.map((name, i) => `${name} = ${args[i]}`).join("\n")
+    const body = compile(car(cdr(cdr(x))))
 
     return `(() => {
       ${lets}
-      const recur = t => {
+      const recur = (${args}) => {
         ${assigns}
 
         return "__RECUR__"
@@ -76,46 +74,43 @@ const compile = x => {
 
       return __RESULT__
     })()`
-  } else if (op === "quote") {
-    return JSON.stringify(x[1][0])
-  } else if (op === "time") {
+  }
+
+  if (op === "quote") {
+    const _ = x =>
+      isCons(x) ? `cons(${_(car(x))}, ${_(cdr(x))})` : JSON.stringify(x)
+
+    return _(car(cdr(x)))
+  }
+
+  if (op === "time") {
     return `(() => {
       let __TIME__ = new Date().getTime()
-      const __RESULT__ = (${compile(x[1][0])})
+      const __RESULT__ = (${compile(car(cdr(x)))})
       __TIME__ = new Date().getTime() - __TIME__
       console.log(__TIME__ + " ms")
       return __RESULT__
     })()`
-  } else if (op === "get") {
-    return `((${compile(x[1][0])})["${compile(x[1][1][0])}"])`
+  }
+
+  if (op === "get") {
+    return `((${compile(car(cdr(x)))})["${compile(car(cdr(cdr(x))))}"])`
   }
 
   op = compile(op)
-  const params = map(compile)(x[1])
+  const params = map(compile)(cdr(x))
 
-  const toList = xs =>
-    xs === null
-      ? null
-      : xs instanceof Array
-        ? `[${xs[0]}, ${toList(xs[1])}]`
-        : xs
-
-  return `(${op})(${toList(params)})`
+  return `(${op})(${toArray(params).join(", ")})`
 }
 
 assert(compile(42) === 42)
 assert(compile("x") === "x")
 
-assert(
-  compile(read("(lambda (x y) (f y x))")) ===
-    "(a => ((x, y) => (f)([y, [x, null]]))(a[0], a[1][0]))"
-)
-assert(compile(read("(lambda x x)")) === "(a => ((x) => x)(a))")
-assert(compile(read("(lambda () 42)")) === "(a => (() => 42)())")
+assert(compile(read("(lambda (x y) (f y x))")) === "((x, y) => (f)(y, x))")
+assert(compile(read("(lambda x x)")) === "((...x) => x)")
+assert(compile(read("(lambda () 42)")) === "(() => 42)")
 
-assert(
-  compile(read("(if x 42 (f 1 2))")) === "((x) ? (42) : ((f)([1, [2, null]])))"
-)
+assert(compile(read("(if x 42 (f 1 2))")) === "((x) ? (42) : ((f)(1, 2)))")
 
 assert(compile(read("(define x 42)")) === `global["x"] = (42), "x"`)
 
@@ -124,9 +119,10 @@ assert(compile(read("(define x 42)")) === `global["x"] = (42), "x"`)
 // )
 
 assert(
-  compile(read("(quote (1 (add 1 1)))")) === `[1,[["add",[1,[1,null]]],null]]`
+  compile(read("(quote (1 (add 1 1)))")) ===
+    `cons(1, cons(cons("add", cons(1, cons(1, null))), null))`
 )
 
-assert(compile(read("(f x y)")) === "(f)([x, [y, null]])")
+assert(compile(read("(f x y)")) === "(f)(x, y)")
 
 module.exports = compile

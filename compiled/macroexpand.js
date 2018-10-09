@@ -1,18 +1,18 @@
 const { assert } = require("../lang.js")
-const { toArray } = require("../list.js")
+const { car, cdr, Cons, isCons, toArray } = require("../list.js")
 const read = require("../read.js")
 const prn = require("../print.js")
 
 const macroexpand = x => {
-  if (!(x instanceof Array)) return x
+  if (!isCons(x)) return x
 
   const map = f => xs => {
     if (xs === null) return null
 
-    if (xs instanceof Array) {
-      const y = f(xs[0])
-      const ys = map(f)(xs[1])
-      return y === xs[0] && ys === xs[1] ? xs : [y, ys]
+    if (isCons(xs)) {
+      const y = f(car(xs))
+      const ys = map(f)(cdr(xs))
+      return y === car(xs) && ys === cdr(xs) ? xs : Cons(y, ys)
     }
 
     return f(xs)
@@ -25,7 +25,7 @@ const macroexpand = x => {
     ys = map(macroexpand)(xs)
   }
 
-  const op = xs[0]
+  const op = car(xs)
   if (
     typeof op !== "string" ||
     typeof global[op] !== "function" ||
@@ -34,13 +34,13 @@ const macroexpand = x => {
     return xs
   }
 
-  return macroexpand(global[op](xs[1]))
+  return macroexpand(global[op].apply(null, toArray(cdr(xs))))
 }
 
 assert(macroexpand(42) === 42)
 assert(macroexpand("y") === "y")
 
-global.first = Object.assign(x => x[0], { macro: true })
-assert(prn(macroexpand(read(`(first (add 1 2) (add 3 4))`))) === "(add 1 2)")
+global.first__ = Object.assign((x, y) => x, { macro: true })
+assert(prn(macroexpand(read(`(first__ (add 1 2) (add 3 4))`))) === "(add 1 2)")
 
 module.exports = macroexpand
