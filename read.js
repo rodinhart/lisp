@@ -1,5 +1,5 @@
 const { assert, identity } = require("./lang.js")
-const { Cons, toList } = require("./list.js")
+const { Cons } = require("./list.js")
 
 const toCons = x => (x instanceof Array ? Cons(x[0], toCons(x[1])) : x)
 

@@ -2,8 +2,7 @@ const { assert } = require("./lang.js")
 
 // Cons, car, cdr
 const Cons = (car, cdr) => ({
-  car, // TODO remove these
-  cdr, // TODO remove these
+  _type: "Cons",
   toString: () => `(${car} . ${cdr ? cdr : "nil"})`,
   first: () => car,
   rest: () => cdr
@@ -12,17 +11,17 @@ const Cons = (car, cdr) => ({
 assert(String(Cons(2, Cons(3, 4))) === "(2 . (3 . 4))")
 
 // isCons
-const isCons = p => p && p.car !== undefined && p.cdr !== undefined
+const isCons = p => p && p._type === "Cons"
 
-const car = p => p.car
-const cdr = p => p.cdr
+const car = p => p.first()
+const cdr = p => p.rest()
 
 assert(car(Cons(1, 2)) === 1)
 assert(cdr(Cons(1, 2)) === 2)
 
 // fold
 const fold = (f, init) => p =>
-  p !== null ? fold(f, f(init, p.car))(p.cdr) : init
+  p !== null ? fold(f, f(init, car(p)))(cdr(p)) : init
 
 assert(fold((a, b) => a + b, 0)(Cons(2, Cons(3, Cons(5, null)))) === 10)
 
@@ -38,7 +37,8 @@ const toArray = xs =>
   }, [])(xs)
 
 // concat
-const concat = (xs, ys) => (xs !== null ? Cons(xs.car, concat(xs.cdr, ys)) : ys)
+const concat = (xs, ys) =>
+  xs !== null ? Cons(car(xs), concat(cdr(xs), ys)) : ys
 
 assert(
   JSON.stringify(
@@ -47,7 +47,7 @@ assert(
 )
 
 // map
-const map = f => p => (p !== null ? Cons(f(p.car), map(f)(p.cdr)) : null)
+const map = f => p => (p !== null ? Cons(f(car(p)), map(f)(cdr(p))) : null)
 
 assert(String(map(x => x * 2)(Cons(2, Cons(3, null)))) === "(4 . (6 . nil))")
 
