@@ -1,11 +1,11 @@
 const fs = require("fs")
 
 const compile = require("./compile.js")
-const { thread } = require("../lang.js")
-const { car, cdr, Cons, fold } = require("../list.js")
+const { thread } = require("./lang.js")
+const { car, cdr, Cons, fold } = require("./list.js")
 const macroexpand = require("./macroexpand.js")
-const read = require("../read.js")
-const prn = require("../print.js")
+const read = require("./read.js")
+const prn = require("./print.js")
 
 const add = (...xs) => xs.reduce((a, b) => a + b, 0)
 const sub = (...xs) => xs[0] - xs[1]

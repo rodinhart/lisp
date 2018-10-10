@@ -1,6 +1,6 @@
-const { assert } = require("../lang.js")
-const { car, cdr, map, isCons, toArray } = require("../list.js")
-const read = require("../read.js")
+const { assert } = require("./lang.js")
+const { car, cdr, map, isCons, toArray } = require("./list.js")
+const read = require("./read.js")
 
 const compile = x => {
   if (!isCons(x)) return x === null ? "null" : x

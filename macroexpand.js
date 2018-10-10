@@ -1,7 +1,7 @@
-const { assert } = require("../lang.js")
-const { car, cdr, Cons, isCons, toArray } = require("../list.js")
-const read = require("../read.js")
-const prn = require("../print.js")
+const { assert } = require("./lang.js")
+const { car, cdr, Cons, isCons, toArray } = require("./list.js")
+const read = require("./read.js")
+const prn = require("./print.js")
 
 const macroexpand = x => {
   if (!isCons(x)) return x
