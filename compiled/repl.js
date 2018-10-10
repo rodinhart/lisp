@@ -22,7 +22,7 @@ const seqArray = (xs, i) =>
       }
     : null
 
-const seq = x => {
+const getSeq = x => {
   if (x === null) return null
 
   if (x.first && x.rest) return x
@@ -32,8 +32,8 @@ const seq = x => {
   throw Error(`Failed to seq from ${x}`)
 }
 
-const first = x => seq(x).first()
-const rest = x => seq(x).rest()
+const first = x => getSeq(x).first()
+const rest = x => getSeq(x).rest()
 
 const DEBUG = false
 

@@ -3,7 +3,7 @@ const { car, cdr, map, isCons, toArray } = require("../list.js")
 const read = require("../read.js")
 
 const compile = x => {
-  if (!isCons(x)) return x
+  if (!isCons(x)) return x === null ? "null" : x
 
   let op = car(x)
   if (op === "lambda" || op === "macro") {

@@ -63,6 +63,8 @@
 
 ; (sq 4)
 
+; (cons 2 nil)
+
 ; (defmacro seq (x y)
 ;  (list (quote cons) x (list (quote lambda) () y)))
 
