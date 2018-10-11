@@ -1,5 +1,5 @@
 (define _list (lambda (x)
-               (if (seq x)
+               (if (getSeq x)
                 (cons (first x) (_list (rest x)))
                 nil)))
 
@@ -59,41 +59,17 @@
                       params
                       body))))
     
-; (defn sq (x) (add x x))
+(define ones (seq 1 ones))
 
-; (sq 4)
+(defn take (n xs)
+ (if (gt n 0)
+  (seq (first xs) (take (sub n 1) (rest xs)))
+  nil))
 
-; (cons 2 nil)
+(defn zip (f xs ys)
+ (seq (f (first xs) (first ys)) (zip f (rest xs) (rest ys))))
 
-; (defmacro seq (x y)
-;  (list (quote cons) x (list (quote lambda) () y)))
+(define fib (seq 1
+             (seq 1 (zip add fib (rest fib)))))
 
-; (defn first (x) (car x))
-; (defn rest (z) ((cdr z)))
-; (defn reify (x) (if x (cons (first x) (reify (rest x))) nil)) ; should be into?
-
-; (defn take (n x)
-;  (if (gt n 0)
-;   (seq (first x) (take (sub n 1) (rest x)))
-;   nil))
-
-; (defn drop (n x)
-;  (if (gt n 0)
-;   (drop (sub n 1) (rest x))
-;   x))
-
-; (defn zip (f x y)
-;  (if x
-;   (seq (f (first x) (first y)) (zip f (rest x) (rest y)))
-;   nil))
-
-; (define fib
-;  (seq 1 (seq 2 (zip add fib (rest fib))))) ; slow, no caching :(
-
-; (defn sum (N)
-;           (loop (n N a 0) ; clash of n otherwise
-;            (if (gt n 0)
-;             (recur (sub n 1) (add a 1))
-;             a)))
-
-; ((get Math sqrt) 2) ; doesn't work because of LISP calling conventions
+(take 10 fib)

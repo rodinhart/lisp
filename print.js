@@ -24,15 +24,25 @@ const prn = x => {
     return `[${x.map(prn).join(",")}]`
   }
 
-  if (x && typeof x === "object") {
-    return `{${Object.entries(x)
-      .filter(
-        ([key, val]) =>
-          !val || (typeof val !== "object" && typeof val !== "function")
-      )
-      .map(([key, val]) => `${key}: ${val}`)
-      .join(", ")}}`
+  if (x && typeof x.first === "function" && typeof x.rest === "function") {
+    const r = []
+    while (x) {
+      r.push(prn(x.first()))
+      x = x.rest()
+    }
+
+    return `(${r.join(" ")})`
   }
+
+  // if (x && typeof x === "object") {
+  //   return `{${Object.entries(x)
+  //     .filter(
+  //       ([key, val]) =>
+  //         !val || (typeof val !== "object" && typeof val !== "function")
+  //     )
+  //     .map(([key, val]) => `${key}: ${val}`)
+  //     .join(", ")}}`
+  // }
 
   return String(x)
 }

@@ -93,6 +93,14 @@ const compile = x => {
     })()`
   }
 
+  if (op === "seq") {
+    return `({
+      first: () => ${compile(car(cdr(x)))},
+      rest: () => ${compile(car(cdr(cdr(x))))},
+      toString: () => "[Seq]"
+    })`
+  }
+
   if (op === "get") {
     return `((${compile(car(cdr(x)))})["${compile(car(cdr(cdr(x))))}"])`
   }
