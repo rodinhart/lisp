@@ -3,8 +3,9 @@ const { car, cdr, EMPTY, map, isCons, toArray } = require("./list.js")
 const read = require("./read.js")
 
 const compile = x => {
-  if (!isCons(x) || x === EMPTY)
-    return x === null ? "null" : x === EMPTY ? "EMPTY" : x
+  if (!isCons(x) || x === EMPTY) {
+    return x === null ? null : x === EMPTY ? "EMPTY" : x
+  }
 
   let op = car(x)
   if (op === "lambda" || op === "macro") {
@@ -106,6 +107,7 @@ const compile = x => {
     })`
   }
 
+  // interop
   if (op === "get") {
     return `((${compile(car(cdr(x)))})["${compile(car(cdr(cdr(x))))}"])`
   }
@@ -116,6 +118,7 @@ const compile = x => {
   return `(${op})(${toArray(params).join(", ")})`
 }
 
+assert(compile(null) === null)
 assert(compile(42) === 42)
 assert(compile("x") === "x")
 

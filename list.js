@@ -2,17 +2,18 @@ const { assert } = require("./lang.js")
 
 const Cons = (car, cdr) => ({
   _type: "Cons",
-  toString: () => `(${car} . ${cdr ? cdr : "nil"})`,
+  toString: () => `(${car} . ${cdr})`,
   first: () => car,
   rest: () => cdr
 })
-
-assert(String(Cons(2, Cons(3, 4))) === "(2 . (3 . 4))")
 
 const EMPTY = {
   _type: "Cons",
   toString: () => "()"
 }
+
+assert(String(Cons(2, Cons(3, EMPTY))) === "(2 . (3 . ()))")
+assert(String(Cons(2, Cons(3, 4))) === "(2 . (3 . 4))")
 
 // isCons
 const isCons = p => p && p._type === "Cons"

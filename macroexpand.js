@@ -3,16 +3,13 @@ const { car, cdr, Cons, EMPTY, isCons, toArray } = require("./list.js")
 const read = require("./read.js")
 const prn = require("./print.js")
 
+// map that preserves referential equal if possible
 const map = f => xs => {
   if (xs === EMPTY) return EMPTY
 
-  // if (isCons(xs)) {
   const y = f(car(xs))
   const ys = map(f)(cdr(xs))
   return y === car(xs) && ys === cdr(xs) ? xs : Cons(y, ys)
-  // }
-
-  // return f(xs)
 }
 
 const macroexpand = x => {
@@ -37,6 +34,8 @@ const macroexpand = x => {
   return macroexpand(global[op].apply(null, toArray(cdr(xs))))
 }
 
+assert(macroexpand(null) === null)
+assert(macroexpand(EMPTY) === EMPTY)
 assert(macroexpand(42) === 42)
 assert(macroexpand("y") === "y")
 

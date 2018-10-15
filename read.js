@@ -42,7 +42,7 @@ const read = s => {
 
 assert(read("nil") === null)
 assert(read("()") === EMPTY)
-assert(read("3") === 3, 3)
+assert(read("3") === 3)
 assert(read("hello") === "hello")
 
 assert(String(read("(1 2)")) === "(1 . (2 . ()))")

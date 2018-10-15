@@ -1,10 +1,11 @@
+;; Take a sequence of operands and put them in a list
 (define _list (lambda (x)
                (if (isEmpty x)
-                EMPTY
+                ()
                 (cons (first x) (_list (rest x))))))
-
 (define list (lambda x (_list x)))
 
+;; Concatenate two lists
 (define concat (lambda (xs ys)
                 (if (isEmpty xs)
                  ys
@@ -12,24 +13,27 @@
                   (car xs)
                   (concat (cdr xs) ys)))))
 
+;; Destruct an parameter pattern to selector on a concrete argument
 (define destruct (lambda (pat arg)
                   (if (isAtom pat)
-                   (cons arg EMPTY)
+                   (cons arg ())
                    (if (isEmpty pat)
-                    EMPTY
+                    ()
                     (concat
                      (destruct (first pat) (list (quote first) arg))
                      (destruct (rest pat) (list (quote rest) arg)))))))
 
+;; Flatten a parameter pattern
 (define flatten (lambda (pat)
                  (if (isAtom pat)
-                  (cons pat EMPTY)
+                  (cons pat ())
                   (if (isEmpty pat)
-                    EMPTY
+                    ()
                     (concat
                       (flatten (first pat))
                       (flatten (rest pat)))))))
 
+;; Function definition with destructuring
 (define fn (macro (params body)
             (list
               (quote lambda)
@@ -41,6 +45,7 @@
                   body)      
                 (destruct params (quote t))))))
 
+;; Convenience macro for defining named functions
 (define defn (macro x
               (list
                 (quote define)
@@ -50,6 +55,7 @@
                   (first (rest x))
                   (first (rest (rest x)))))))
 
+;; Convenience macro for defining macros
 (define defmacro (macro (name params body)
                   (list
                     (quote define)
@@ -59,8 +65,7 @@
                       params
                       body))))
 
-(define ones (seq 1 ones))
-
+;; test
 (defn take (n xs)
  (if (gt n 0)
   (seq (first xs) (take (sub n 1) (rest xs)))
@@ -69,7 +74,6 @@
 (defn zip (f xs ys)
  (seq (f (first xs) (first ys)) (zip f (rest xs) (rest ys))))
 
-(define fib (seq 1
-             (seq 1 (zip add fib (rest fib)))))
+(define fib (seq 1 (seq 1 (zip add fib (rest fib)))))
 
 (take 10 fib)

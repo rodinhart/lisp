@@ -4,23 +4,9 @@ Lisp implementation in JavaScript that compiles to JavaScript and then evals the
 
 ## TODO
 
+- use Symbols for proper interface (see repl.it)
+- implement list operations in terms of first/rest?
 - how to include better function names, e.g. `atom?`, `+`
-
-- ISeq
-
-  - first
-  - rest
-
-- Array : ISeq
-
-  - []
-  - [0]
-  - .slice(1)
-
-- Cons : ISeq
-  - Cons.Empty
-  - car
-  - cdr
 
 ## C implementation
 

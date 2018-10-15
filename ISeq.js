@@ -1,4 +1,4 @@
-const { isCons } = require("./list.js")
+const { EMPTY, isCons } = require("./list.js")
 
 const seqArray = (xs, i) =>
   i < xs.length
@@ -9,13 +9,11 @@ const seqArray = (xs, i) =>
     : null
 
 const getSeq = x => {
-  if (x === null) return null
+  if (x === null || x === EMPTY) return null
 
   if (typeof x.first === "function" && typeof x.rest === "function") return x
 
   if (x instanceof Array) return seqArray(x, 0)
-
-  if (isCons(x)) return null // Empty cons
 
   throw new Error(`Failed to get ISeq for ${x}`)
 }
