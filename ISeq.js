@@ -20,9 +20,11 @@ const getSeq = x => {
 
 const first = x => getSeq(x).first()
 const rest = x => getSeq(x).rest()
+const isEmpty = x => getSeq(x) === null
 
 module.exports = {
   first,
   getSeq,
+  isEmpty,
   rest
 }

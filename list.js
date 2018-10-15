@@ -68,6 +68,7 @@ module.exports = {
   cdr,
   concat,
   Cons,
+  cons: Cons,
   EMPTY,
   fold,
   isCons,
