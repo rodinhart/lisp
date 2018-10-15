@@ -1,22 +1,23 @@
 const { assert } = require("./lang.js")
-const { car, cdr, map, isCons, toArray } = require("./list.js")
+const { car, cdr, EMPTY, map, isCons, toArray } = require("./list.js")
 const read = require("./read.js")
 
 const compile = x => {
-  if (!isCons(x)) return x === null ? "null" : x
+  if (!isCons(x) || x === EMPTY)
+    return x === null ? "null" : x === EMPTY ? "EMPTY" : x
 
   let op = car(x)
   if (op === "lambda" || op === "macro") {
     // (lambda (x y) (f x y))
     const args = []
     let p = car(cdr(x))
-    while (p !== null) {
+    while (p !== EMPTY) {
       if (isCons(p)) {
         args.push(car(p))
         p = cdr(p)
       } else {
         args.push(`...${p}`)
-        p = null
+        p = EMPTY
       }
     }
 
@@ -47,7 +48,7 @@ const compile = x => {
     const names = []
     const inits = []
     let p = car(cdr(x))
-    while (p !== null) {
+    while (p !== EMPTY) {
       names.push(car(p))
       inits.push(compile(car(cdr(p))))
       p = cdr(cdr(p))
@@ -78,7 +79,11 @@ const compile = x => {
 
   if (op === "quote") {
     const _ = x =>
-      isCons(x) ? `cons(${_(car(x))}, ${_(cdr(x))})` : JSON.stringify(x)
+      !isCons(x)
+        ? JSON.stringify(x)
+        : x === EMPTY
+          ? "EMPTY"
+          : `cons(${_(car(x))}, ${_(cdr(x))})`
 
     return _(car(cdr(x)))
   }
@@ -128,7 +133,7 @@ assert(compile(read("(define x 42)")) === `global["x"] = (42), "x"`)
 
 assert(
   compile(read("(quote (1 (add 1 1)))")) ===
-    `cons(1, cons(cons("add", cons(1, cons(1, null))), null))`
+    `cons(1, cons(cons("add", cons(1, cons(1, EMPTY))), EMPTY))`
 )
 
 assert(compile(read("(f x y)")) === "(f)(x, y)")

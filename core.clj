@@ -1,34 +1,34 @@
 (define _list (lambda (x)
-               (if (getSeq x)
-                (cons (first x) (_list (rest x)))
-                nil)))
+               (if (isEmpty x)
+                EMPTY
+                (cons (first x) (_list (rest x))))))
 
 (define list (lambda x (_list x)))
 
 (define concat (lambda (xs ys)
-                (if xs
+                (if (isEmpty xs)
+                 ys
                  (cons
                   (car xs)
-                  (concat (cdr xs) ys))
-                 ys)))
+                  (concat (cdr xs) ys)))))
 
 (define destruct (lambda (pat arg)
-                  (if pat
-                    (if (isAtom pat)
-                      (cons arg ())
-                      (concat
-                        (destruct (first pat) (list (quote first) arg))
-                        (destruct (rest pat) (list (quote rest) arg))))
-                   nil)))
+                  (if (isAtom pat)
+                   (cons arg EMPTY)
+                   (if (isEmpty pat)
+                    EMPTY
+                    (concat
+                     (destruct (first pat) (list (quote first) arg))
+                     (destruct (rest pat) (list (quote rest) arg)))))))
 
 (define flatten (lambda (pat)
-                 (if pat
-                   (if (isAtom pat)
-                     (cons pat ())
-                     (concat
-                       (flatten (first pat))
-                       (flatten (rest pat))))
-                   nil)))
+                 (if (isAtom pat)
+                  (cons pat EMPTY)
+                  (if (isEmpty pat)
+                    EMPTY
+                    (concat
+                      (flatten (first pat))
+                      (flatten (rest pat)))))))
 
 (define fn (macro (params body)
             (list
@@ -58,7 +58,7 @@
                       (quote macro)
                       params
                       body))))
-    
+
 (define ones (seq 1 ones))
 
 (defn take (n xs)

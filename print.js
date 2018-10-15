@@ -1,19 +1,19 @@
 const { assert } = require("./lang.js")
-const { car, cdr, Cons, isCons } = require("./list.js")
+const { car, cdr, Cons, EMPTY, isCons } = require("./list.js")
 
 const prn = x => {
-  if (x == null) return "nil"
+  if (x === null) return "nil"
 
   if (isCons(x)) {
     const r = []
-    while (x !== null) {
+    while (x !== EMPTY) {
       if (isCons(x)) {
         r.push(prn(car(x)))
         x = cdr(x)
       } else {
         r.push(".")
         r.push(prn(x))
-        x = null
+        x = EMPTY
       }
     }
 
@@ -51,7 +51,7 @@ assert(prn(null) === "nil")
 assert(prn(3) === "3")
 assert(prn("a") === "a")
 
-assert(prn(Cons(2, Cons(3, Cons(5, null)))) === "(2 3 5)")
+assert(prn(Cons(2, Cons(3, Cons(5, EMPTY)))) === "(2 3 5)")
 assert(prn(Cons(1, 2)) === "(1 . 2)")
 
 assert(prn([1, [2, null]]) === "[1,[2,nil]]")

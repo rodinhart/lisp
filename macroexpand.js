@@ -1,22 +1,22 @@
 const { assert } = require("./lang.js")
-const { car, cdr, Cons, isCons, toArray } = require("./list.js")
+const { car, cdr, Cons, EMPTY, isCons, toArray } = require("./list.js")
 const read = require("./read.js")
 const prn = require("./print.js")
 
+const map = f => xs => {
+  if (xs === EMPTY) return EMPTY
+
+  // if (isCons(xs)) {
+  const y = f(car(xs))
+  const ys = map(f)(cdr(xs))
+  return y === car(xs) && ys === cdr(xs) ? xs : Cons(y, ys)
+  // }
+
+  // return f(xs)
+}
+
 const macroexpand = x => {
-  if (!isCons(x)) return x
-
-  const map = f => xs => {
-    if (xs === null) return null
-
-    if (isCons(xs)) {
-      const y = f(car(xs))
-      const ys = map(f)(cdr(xs))
-      return y === car(xs) && ys === cdr(xs) ? xs : Cons(y, ys)
-    }
-
-    return f(xs)
-  }
+  if (!isCons(x) || x === EMPTY) return x
 
   let xs = x
   let ys = map(macroexpand)(xs)

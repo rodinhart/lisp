@@ -6,6 +6,22 @@ Lisp implementation in JavaScript that compiles to JavaScript and then evals the
 
 - how to include better function names, e.g. `atom?`, `+`
 
+- ISeq
+
+  - first
+  - rest
+
+- Array : ISeq
+
+  - []
+  - [0]
+  - .slice(1)
+
+- Cons : ISeq
+  - Cons.Empty
+  - car
+  - cdr
+
 ## C implementation
 
 An implementation of LISP written in C. The aim is to keep the core small and understandable, and provide a good interop (FFI) with C.

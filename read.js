@@ -1,5 +1,5 @@
 const { assert, identity } = require("./lang.js")
-const { Cons } = require("./list.js")
+const { Cons, EMPTY } = require("./list.js")
 
 const toCons = x => (x instanceof Array ? Cons(x[0], toCons(x[1])) : x)
 
@@ -8,10 +8,10 @@ const read = s => {
     if (!x.length) return null
     const f = x.shift()
     if (f === "(") {
-      const r = [null, null]
+      const r = [null, EMPTY]
       let c = r
       while (x.length && x[0] !== "." && x[0] !== ")") {
-        c[1] = [_(x), null]
+        c[1] = [_(x), EMPTY]
         c = c[1]
       }
 
@@ -40,12 +40,13 @@ const read = s => {
   )
 }
 
-assert(read("()") === null)
+assert(read("nil") === null)
+assert(read("()") === EMPTY)
 assert(read("3") === 3, 3)
 assert(read("hello") === "hello")
 
-assert(String(read("(1 2)")) === "(1 . (2 . nil))")
+assert(String(read("(1 2)")) === "(1 . (2 . ()))")
 assert(String(read("(1 2 . 3)")) === "(1 . (2 . 3))")
-assert(String(read("(1 (a) 3)")) === "(1 . ((a . nil) . (3 . nil)))")
+assert(String(read("(1 (a) 3)")) === "(1 . ((a . ()) . (3 . ())))")
 
 module.exports = read

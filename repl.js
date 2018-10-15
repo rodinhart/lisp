@@ -1,8 +1,9 @@
 const fs = require("fs")
 
 const compile = require("./compile.js")
+const { first, getSeq, rest } = require("./ISeq.js")
 const { thread } = require("./lang.js")
-const { car, cdr, Cons, fold } = require("./list.js")
+const { car, cdr, Cons, EMPTY, fold } = require("./list.js")
 const macroexpand = require("./macroexpand.js")
 const read = require("./read.js")
 const prn = require("./print.js")
@@ -13,32 +14,11 @@ const gt = (...xs) => xs[0] > xs[1]
 const print = (...xs) => prn(xs[0])
 const cons = Cons
 const isAtom = x => typeof x !== "object"
-
-const seqArray = (xs, i) =>
-  i < xs.length
-    ? {
-        first: () => xs[i],
-        rest: () => seqArray(xs, i + 1)
-      }
-    : null
-
-const getSeq = x => {
-  if (x === null) return null
-
-  if (x.first && x.rest) return x
-
-  if (x instanceof Array) return seqArray(x, 0)
-
-  throw Error(`Failed to seq from ${x}`)
-}
-
-const first = x => getSeq(x).first()
-const rest = x => getSeq(x).rest()
+const isEmpty = x => getSeq(x) === null
 
 const DEBUG = false
 
-thread(
-  String(fs.readFileSync("./core.clj")),
+thread(String(fs.readFileSync("./core.clj")), [
   s => `(${s})`,
   read,
 
@@ -54,4 +34,4 @@ thread(
   prn,
 
   x => console.log(x)
-)
+])
