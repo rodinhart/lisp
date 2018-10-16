@@ -4,9 +4,7 @@ Lisp implementation in JavaScript that compiles to JavaScript and then evals the
 
 ## TODO
 
-- use Symbols for proper interface (see repl.it)
-- implement list operations in terms of first/rest?
-- how to include better function names, e.g. `atom?`, `+`
+- Rename repl.js to makeModule?
 
 ## C implementation
 

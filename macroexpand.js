@@ -12,34 +12,37 @@ const map = f => xs => {
   return y === car(xs) && ys === cdr(xs) ? xs : Cons(y, ys)
 }
 
-const macroexpand = x => {
+const macroexpand = (x, env) => {
   if (!isCons(x) || x === EMPTY) return x
 
   let xs = x
-  let ys = map(macroexpand)(xs)
+  let ys = map(x => macroexpand(x, env))(xs)
   while (ys !== xs) {
     xs = ys
-    ys = map(macroexpand)(xs)
+    ys = map(y => macroexpand(y, env))(xs)
   }
 
   const op = car(xs)
   if (
     typeof op !== "string" ||
-    typeof global[op] !== "function" ||
-    !global[op].macro
+    typeof env[op] !== "function" ||
+    !env[op].macro
   ) {
     return xs
   }
 
-  return macroexpand(global[op].apply(null, toArray(cdr(xs))))
+  return macroexpand(env[op].apply(null, toArray(cdr(xs))), env)
 }
 
-assert(macroexpand(null) === null)
-assert(macroexpand(EMPTY) === EMPTY)
-assert(macroexpand(42) === 42)
-assert(macroexpand("y") === "y")
+assert(macroexpand(null, {}) === null)
+assert(macroexpand(EMPTY, {}) === EMPTY)
+assert(macroexpand(42, {}) === 42)
+assert(macroexpand("y", {}) === "y")
 
-global.first__ = Object.assign((x, y) => x, { macro: true })
-assert(prn(macroexpand(read(`(first__ (add 1 2) (add 3 4))`))) === "(add 1 2)")
+const env = {}
+env.first__ = Object.assign((x, y) => x, { macro: true })
+assert(
+  prn(macroexpand(read(`(first__ (add 1 2) (add 3 4))`), env)) === "(add 1 2)"
+)
 
 module.exports = macroexpand
