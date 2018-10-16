@@ -1,37 +1,4 @@
-const fs = require("fs")
-
-const compile = require("./compile.js")
-const { thread } = require("./lang.js")
-const { EMPTY, car, cdr, cons, fold } = require("./list.js")
-const macroexpand = require("./macroexpand.js")
-const prn = require("./print.js")
-const read = require("./read.js")
-const sandbox = require("./sandbox.js")
-const { first, isEmpty, rest, Seq } = require("./ISeq.js")
-
-const DEBUG = false
-
-const isAtom = x => typeof x !== "object"
-const add = (...xs) => xs.reduce((a, b) => a + b, 0)
-const sub = (...xs) => xs[0] - xs[1]
-const gt = (...xs) => xs[0] > xs[1]
-
-const core = {
-  first,
-  isEmpty,
-  rest,
-  Seq,
-  EMPTY,
-  car,
-  cdr,
-  cons,
-  isAtom,
-  add,
-  sub,
-  gt
-}
-
-const env = { ...core }
+const env = { ...require("./primitive.js") }
 ;(env["_list"] = x =>
   env["isEmpty"](x)
     ? env["EMPTY"]
