@@ -27,3 +27,5 @@ thread(String(fs.readFileSync("./core.clj")), [
 
   x => console.log(x)
 ])
+
+console.log([...foobar])

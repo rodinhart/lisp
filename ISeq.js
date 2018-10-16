@@ -22,9 +22,24 @@ const first = x => getSeq(x).first()
 const rest = x => getSeq(x).rest()
 const isEmpty = x => getSeq(x) === null
 
+const Seq = (first, rest) => ({
+  first,
+  rest,
+  toString: () => "[Seq]",
+  [Symbol.iterator]: function*() {
+    yield first()
+    const c = rest()
+    if (!c) return
+    for (const val of c) {
+      yield val
+    }
+  }
+})
+
 module.exports = {
   first,
   getSeq,
   isEmpty,
-  rest
+  rest,
+  Seq
 }

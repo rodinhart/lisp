@@ -1,4 +1,4 @@
-const { first, isEmpty, rest } = require("./ISeq.js")
+const { first, isEmpty, rest, Seq } = require("./ISeq.js")
 const { EMPTY, car, cdr, cons } = require("./list.js")
 
 const isAtom = x => typeof x !== "object"

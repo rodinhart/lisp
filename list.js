@@ -1,16 +1,24 @@
 const { assert } = require("./lang.js")
 
+const EMPTY = {
+  _type: "Cons",
+  toString: () => "()",
+  [Symbol.iterator]: function*() {}
+}
+
 const Cons = (car, cdr) => ({
   _type: "Cons",
   toString: () => `(${car} . ${cdr})`,
   first: () => car,
-  rest: () => cdr
+  rest: () => cdr,
+  [Symbol.iterator]: function*() {
+    let c = Cons(car, cdr)
+    while (c !== EMPTY) {
+      yield c.first()
+      c = c.rest()
+    }
+  }
 })
-
-const EMPTY = {
-  _type: "Cons",
-  toString: () => "()"
-}
 
 assert(String(Cons(2, Cons(3, EMPTY))) === "(2 . (3 . ()))")
 assert(String(Cons(2, Cons(3, 4))) === "(2 . (3 . 4))")

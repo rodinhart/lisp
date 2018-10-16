@@ -76,4 +76,6 @@
 
 (define fib (seq 1 (seq 1 (zip add fib (rest fib)))))
 
-(take 10 fib)
+(define foobar (take 10 fib))
+
+foobar

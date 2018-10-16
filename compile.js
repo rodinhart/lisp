@@ -100,11 +100,14 @@ const compile = x => {
   }
 
   if (op === "seq") {
-    return `({
-      first: () => ${compile(car(cdr(x)))},
-      rest: () => ${compile(car(cdr(cdr(x))))},
-      toString: () => "[Seq]"
-    })`
+    return `Seq(() => ${compile(car(cdr(x)))}, () => ${compile(
+      car(cdr(cdr(x)))
+    )})`
+    // return `({
+    //   first: () => ${compile(car(cdr(x)))},
+    //   rest: () => ${compile(car(cdr(cdr(x))))},
+    //   toString: () => "[Seq]"
+    // })`
   }
 
   // interop
