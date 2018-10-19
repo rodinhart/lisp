@@ -4,7 +4,10 @@ Lisp implementation in JavaScript that compiles to JavaScript and then evals the
 
 ## TODO
 
+- Throw error on unknown symbol
 - Rename repl.js to makeModule?
+- How to compile ahead of time without running costly expressions?
+  - Need to run some expressions: they might be defining macros
 
 ## C implementation
 

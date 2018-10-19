@@ -4,7 +4,12 @@ const read = require("./read.js")
 
 const compile = (x, env) => {
   if (x === null) return null
-  if (typeof x === "string") return env[x] ? x : `env["${x}"]`
+  if (typeof x === "string")
+    return env[x]
+      ? x
+      : x.startsWith("js.")
+        ? x.substr(3).replace(/\//, ".")
+        : `env["${x}"]`
   if (!isCons(x)) return x
 
   if (x === EMPTY) return `env["EMPTY"]`
@@ -64,8 +69,18 @@ const compile = (x, env) => {
       .map((name, i) => `let ${name} = (${inits[i]})`)
       .join("\n")
     const args = names.map(arg => `_${arg}`).join(", ")
-    const assigns = names.map((name, i) => `${name} = ${args[i]}`).join("\n")
-    const body = compile(car(cdr(cdr(x))), env)
+    const assigns = names.map((name, i) => `${name} = _${name}`).join("\n")
+    const body = compile(
+      car(cdr(cdr(x))),
+      names.reduce(
+        (env, name) => {
+          env[name] = true
+
+          return env
+        },
+        { ...env, recur: true }
+      )
+    )
 
     return `(() => {
       ${lets}

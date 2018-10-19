@@ -34,8 +34,9 @@ thread(String(fs.readFileSync("./core.clj")), [
     [`const env = {...require("./primitive.js")}`]
   ),
 
-  // prn,
   lines => lines.join(";\n\n"),
-
-  x => console.log(x)
+  // x => console.log(x) || x,
+  sandbox,
+  prn,
+  console.log
 ])

@@ -78,4 +78,12 @@
 
 (define foobar (take 10 fib))
 
-foobar
+(defn diff (a b)
+ (mul (sub a b) (sub a b)))
+
+(loop (x 0)
+ (if (eq 0 (diff (js.Math/cos x) x))
+  x
+  (recur (js.Math/cos x))))
+
+;; ---
