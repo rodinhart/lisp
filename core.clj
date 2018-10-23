@@ -74,7 +74,7 @@
 (defn zip (f xs ys)
  (seq (f (first xs) (first ys)) (zip f (rest xs) (rest ys))))
 
-(define fib (seq 1 (seq 1 (zip + fib (rest fib)))))
+(define fib (seq 1 (seq 1 (zip add fib (rest fib)))))
 
 (define foobar (take 10 fib))
 

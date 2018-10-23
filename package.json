@@ -1,0 +1,22 @@
+{
+  "name": "lisp",
+  "version": "1.0.0",
+  "main": "app/index.js",
+  "scripts": {
+    "start": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodinhart/lisp.git"
+  },
+  "author": "Rodin van der Hart",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rodinhart/lisp/issues"
+  },
+  "homepage": "https://github.com/rodinhart/lisp#readme",
+  "devDependencies": {
+    "webpack": "^4.22.0",
+    "webpack-cli": "^3.1.2"
+  }
+}

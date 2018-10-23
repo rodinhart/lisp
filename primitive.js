@@ -17,7 +17,7 @@ module.exports = {
   cdr,
   cons,
   isAtom,
-  "+": (...xs) => xs.reduce((a, b) => a + b, 0),
+  add: (...xs) => xs.reduce((a, b) => a + b, 0),
   sub,
   gt,
   eq,

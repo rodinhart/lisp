@@ -2,6 +2,8 @@ const { assert } = require("./lang.js")
 const { car, cdr, EMPTY, map, isCons, toArray } = require("./list.js")
 const read = require("./read.js")
 
+const ENV = "module.exports"
+
 const compile = (x, env) => {
   if (x === null) return null
   if (typeof x === "string")
@@ -9,13 +11,13 @@ const compile = (x, env) => {
       ? x
       : x.startsWith("js.")
         ? x.substr(3).replace(/\//, ".")
-        : `env["${x}"]`
+        : `${ENV}["${x}"]`
 
   if (x instanceof Array) return `[${x.map(y => compile(y, env)).join(", ")}]`
 
   if (!isCons(x)) return x
 
-  if (x === EMPTY) return `env["EMPTY"]`
+  if (x === EMPTY) return `${ENV}["EMPTY"]`
 
   let op = car(x)
   if (op === "lambda" || op === "macro") {
@@ -55,7 +57,7 @@ const compile = (x, env) => {
   if (op === "define") {
     const name = car(cdr(x))
     const value = compile(car(cdr(cdr(x))), env)
-    return `env["${name}"] = (${value}), "${name}"`
+    return `${ENV}["${name}"] = (${value}), "${name}"`
   }
 
   if (op === "loop") {
@@ -106,7 +108,7 @@ const compile = (x, env) => {
       !isCons(x)
         ? JSON.stringify(x)
         : x === EMPTY
-          ? `env["EMPTY"]`
+          ? `${ENV}["EMPTY"]`
           : `cons(${_(car(x))}, ${_(cdr(x))})`
 
     return _(car(cdr(x)))
@@ -123,7 +125,7 @@ const compile = (x, env) => {
   }
 
   if (op === "seq") {
-    return `env["Seq"](() => ${compile(car(cdr(x)), env)}, () => ${compile(
+    return `Seq(() => ${compile(car(cdr(x)), env)}, () => ${compile(
       car(cdr(cdr(x))),
       env
     )})`
@@ -151,7 +153,7 @@ const compile = (x, env) => {
 assert(compile(null, {}) === null)
 assert(compile(42, {}) === 42)
 assert(compile("x", { x: true }) === "x")
-assert(compile("y", {}) === `env["y"]`)
+assert(compile("y", {}) === `${ENV}["y"]`)
 
 assert(
   compile(read("(lambda (x y) (f y x))"), { f: true }) ===
@@ -165,11 +167,11 @@ assert(
     "((x) ? (42) : ((f)(1, 2)))"
 )
 
-assert(compile(read("(define x 42)"), {}) === `env["x"] = (42), "x"`)
+assert(compile(read("(define x 42)"), {}) === `${ENV}["x"] = (42), "x"`)
 
 assert(
   compile(read("(quote (1 (add 1 1)))"), { add: true }) ===
-    `cons(1, cons(cons("add", cons(1, cons(1, env["EMPTY"]))), env["EMPTY"]))`
+    `cons(1, cons(cons("add", cons(1, cons(1, ${ENV}["EMPTY"]))), ${ENV}["EMPTY"]))`
 )
 
 assert(compile(read("(f x y)"), { f: true, x: true, y: true }) === "(f)(x, y)")
