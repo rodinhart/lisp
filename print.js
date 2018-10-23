@@ -54,6 +54,7 @@ assert(prn("a") === "a")
 assert(prn(Cons(2, Cons(3, Cons(5, EMPTY)))) === "(2 3 5)")
 assert(prn(Cons(1, 2)) === "(1 . 2)")
 
+assert(prn([1, 2, 3]) === "[1,2,3]")
 assert(prn([1, [2, null]]) === "[1,[2,nil]]")
 
 module.exports = prn

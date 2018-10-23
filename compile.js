@@ -10,6 +10,9 @@ const compile = (x, env) => {
       : x.startsWith("js.")
         ? x.substr(3).replace(/\//, ".")
         : `env["${x}"]`
+
+  if (x instanceof Array) return `[${x.map(y => compile(y, env)).join(", ")}]`
+
   if (!isCons(x)) return x
 
   if (x === EMPTY) return `env["EMPTY"]`

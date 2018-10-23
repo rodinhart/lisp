@@ -74,16 +74,10 @@
 (defn zip (f xs ys)
  (seq (f (first xs) (first ys)) (zip f (rest xs) (rest ys))))
 
-(define fib (seq 1 (seq 1 (zip add fib (rest fib)))))
+(define fib (seq 1 (seq 1 (zip + fib (rest fib)))))
 
 (define foobar (take 10 fib))
 
-(defn diff (a b)
- (mul (sub a b) (sub a b)))
-
-(loop (x 0)
- (if (eq 0 (diff (js.Math/cos x) x))
-  x
-  (recur (js.Math/cos x))))
+[1 2 3]
 
 ;; ---

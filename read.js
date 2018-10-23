@@ -25,6 +25,17 @@ const read = s => {
       return toCons(r[1])
     }
 
+    if (f === "[") {
+      const r = []
+      while (x.length && x[0] !== "]") {
+        r.push(_(x))
+      }
+
+      if (x.shift() !== "]") throw new Error("Missing ]")
+
+      return r
+    }
+
     if (f === "nil") return null
 
     return String(Number(f)) === f ? Number(f) : f
@@ -34,7 +45,7 @@ const read = s => {
     s
       .replace(/\r/g, "")
       .replace(/(;.*\n)/g, "\n")
-      .replace(/(\(|\))/g, " $1 ")
+      .replace(/(\(|\)|\[|\])/g, " $1 ")
       .split(/\s/)
       .filter(identity)
   )
@@ -48,5 +59,7 @@ assert(read("hello") === "hello")
 assert(String(read("(1 2)")) === "(1 . (2 . ()))")
 assert(String(read("(1 2 . 3)")) === "(1 . (2 . 3))")
 assert(String(read("(1 (a) 3)")) === "(1 . ((a . ()) . (3 . ())))")
+
+assert(JSON.stringify(read("[1 2 a b]")) === `[1,2,"a","b"]`)
 
 module.exports = read

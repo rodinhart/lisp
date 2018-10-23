@@ -7,9 +7,13 @@ const prn = require("./print.js")
 const map = f => xs => {
   if (xs === EMPTY) return EMPTY
 
-  const y = f(car(xs))
-  const ys = map(f)(cdr(xs))
-  return y === car(xs) && ys === cdr(xs) ? xs : Cons(y, ys)
+  if (isCons(xs)) {
+    const y = f(car(xs))
+    const ys = map(f)(cdr(xs))
+    return y === car(xs) && ys === cdr(xs) ? xs : Cons(y, ys)
+  }
+
+  return f(xs)
 }
 
 const macroexpand = (x, env) => {
@@ -38,6 +42,9 @@ assert(macroexpand(null, {}) === null)
 assert(macroexpand(EMPTY, {}) === EMPTY)
 assert(macroexpand(42, {}) === 42)
 assert(macroexpand("y", {}) === "y")
+
+assert(prn(macroexpand(read(`(1 2 3)`))) === "(1 2 3)")
+assert(prn(macroexpand(read(`(1 2 . 3)`))) === "(1 2 . 3)")
 
 const env = {}
 env.first__ = Object.assign((x, y) => x, { macro: true })
