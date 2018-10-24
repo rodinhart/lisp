@@ -9,7 +9,7 @@ module.exports = {
         test: /\.clj$/,
         use: [
           {
-            loader: path.resolve("lisp-loader.js")
+            loader: path.resolve("./src/lisp-loader.js")
           }
         ]
       }

@@ -1,4 +1,4 @@
-const { EMPTY, isCons } = require("./list.js")
+const { EMPTY } = require("./list.js")
 
 const seqArray = (xs, i) =>
   i < xs.length
