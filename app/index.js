@@ -1,3 +1,3 @@
-const core = require("../src/core.clj")
+const { foobar } = require("./test.clj")
 
-console.log([...core.foobar])
+console.log("RODIN", [...foobar])

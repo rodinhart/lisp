@@ -2,7 +2,7 @@ const { assert } = require("./lang.js")
 const { car, cdr, EMPTY, map, isCons, toArray } = require("./list.js")
 const read = require("./read.js")
 
-const ENV = "module.exports"
+const ENV = "env"
 
 const compile = (x, env) => {
   if (x === null) return null
@@ -125,7 +125,7 @@ const compile = (x, env) => {
   }
 
   if (op === "seq") {
-    return `Seq(() => ${compile(car(cdr(x)), env)}, () => ${compile(
+    return `${ENV}["Seq"](() => ${compile(car(cdr(x)), env)}, () => ${compile(
       car(cdr(cdr(x))),
       env
     )})`
@@ -137,6 +137,14 @@ const compile = (x, env) => {
   }
 
   // interop
+  if (op === "export") {
+    return `module.exports["${car(cdr(x))}"] = ${ENV}["${car(cdr(x))}"]`
+  }
+
+  if (op === "import") {
+    return "" //`Object.assign(${ENV}, require("${car(cdr(x))}"))`
+  }
+
   if (op === "get") {
     return `((${compile(car(cdr(x)), env)})["${compile(
       car(cdr(cdr(x))),

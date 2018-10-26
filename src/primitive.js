@@ -2,10 +2,6 @@ const { EMPTY, car, cdr, cons } = require("./list.js")
 const { first, isEmpty, rest, Seq } = require("./ISeq.js")
 
 const isAtom = x => typeof x !== "object"
-const sub = (...xs) => xs[0] - xs[1]
-const gt = (...xs) => xs[0] > xs[1]
-const eq = (...xs) => xs[0] === xs[1]
-const mul = (...xs) => xs.reduce((a, b) => a * b, 1)
 
 module.exports = {
   first,
@@ -17,9 +13,9 @@ module.exports = {
   cdr,
   cons,
   isAtom,
-  add: (...xs) => xs.reduce((a, b) => a + b, 0),
-  sub,
-  gt,
-  eq,
-  mul
+  "+": (...xs) => xs.reduce((a, b) => a + b, 0),
+  "-": (...xs) => xs[0] - xs[1],
+  ">": (...xs) => xs[0] > xs[1],
+  "=": (...xs) => xs[0] === xs[1],
+  "*": (...xs) => xs.reduce((a, b) => a * b, 1)
 }
