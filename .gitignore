@@ -1,2 +1,10 @@
+archimedes/CMOS
+archimedes/FS/*.*
+archimedes/ROMS
+archimedes/SRC
+archimedes/*.*
+archimedes/arcrom
+archimedes/idefs
+
 node_modules/
 dist/

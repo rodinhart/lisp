@@ -1,0 +1,574 @@
+NEW
+AUTO 3,1
+CLS
+
+OS_WriteC = &00
+OS_WriteS = &01
+OS_Write0 = &02
+OS_NewLine = &03
+OS_WriteN = &46
+OS_ConvertInteger4 = &DC
+OS_WriteI = &100
+
+pc = 15
+lr = 14
+sp = 13
+tmp = 12
+tm2 = 11
+val = 10
+exp = 9
+env = 8
+opr = 7
+arg = 6
+
+REM TODOs
+REM error propegation
+REM should probably have workspace (heap root) pointer?
+REM GC!
+
+NIL = 0
+
+REM cons is 2 words, so at least word aligned, giving 2 bits
+F_MARKED = &1 : REM last bit for marking in gc cycle
+F_LIST = &2 : REM 000
+T_SYMBOL = &2 : REM 010
+T_INT = &6 : REM 110
+T_NATIVE = &A : REM 1010
+T_TYPES = &F : REM 1111
+
+DIM code% 99999
+DIM heap% 9999
+FOR pass% = 0 TO 2 STEP 2
+P% = code%
+[OPT pass%
+.heap
+ EQUD heap%
+ EQUD heap% + 10000
+
+.code
+ EQUS "((define fac (lambda (n) (if (= n 0) 1 (* n (fac (- n 1)))))) (fac 5)) "
+ EQUB 0
+ ALIGN
+
+.test
+ stmfd (sp)!, {lr}
+ adr exp, code
+ bl env_create
+ bl read_any
+bl print_any
+ldmfd (sp)!, {pc}
+ mov exp, val
+.run
+ teq exp, #NIL
+ beq run_done
+ stmfd (sp)!, {exp, env}
+ FNcar(exp, exp)
+ bl eval_any
+ ldmfd (sp)!, {exp, env}
+ bvs on_error
+ FNcdr(exp, exp)
+ b run
+.run_done
+ bl print_any
+ ldmfd (sp)!, {pc}
+.on_error
+ swi OS_Write0
+ ldmfd (sp)!, {pc}
+
+
+.env_create ; () => env
+ stmfd (sp)!, {exp, opr, val, lr}
+ mov env, #NIL
+ adr exp, env_core
+.env_init
+ ldr opr, [exp], #4
+ teq opr, #NIL
+ ldmeqfd (sp)!, {exp, opr, val, pc}
+
+ FNalloc(val)
+ mov tmp, #T_NATIVE
+ str tmp, [val]
+ str opr, [val, #4]
+ FNcons(env, val, env)
+
+ add opr, exp, #1
+.env_scan
+ ldrb tmp, [opr]
+ teq tmp, #0
+ addne opr, opr, #1
+ bne env_scan
+
+ FNsymbol(val, exp, opr)
+ FNcons(env, val, env)
+ 
+ add exp, opr, #1
+ add exp, exp, #3 ; ALIGN
+ bic exp, exp, #3
+ b env_init
+.env_core
+ EQUD nat_plus
+ EQUS "+"
+ EQUB 0
+ ALIGN
+ EQUD nat_print
+ EQUS "print"
+ EQUB 0
+ ALIGN
+ EQUD nat_eq
+ EQUS "="
+ EQUB 0
+ ALIGN
+ EQUD nat_sub
+ EQUS "-"
+ EQUB 0
+ ALIGN
+ EQUD nat_mul
+ EQUS "*"
+ EQUB 0
+ ALIGN
+ EQUD NIL
+
+.nat_plus
+ mov val, #0
+.plus_loop
+ teq exp, #NIL
+ beq plus_end
+ ldr tmp, [exp]
+ ldr tmp, [tmp, #4]
+ add val, val, tmp
+ ldr exp, [exp, #4]
+ b plus_loop
+.plus_end
+ FNint(val, val)
+ mov pc, lr
+
+.nat_print
+ EQUD T_NATIVE
+ EQUD user_print
+.user_print
+ FNcar(val, exp)
+ stmfd (sp)!, {lr}
+ bl print_any
+ swi OS_NewLine
+ mov val, #NIL
+ ldmfd (sp)!, {pc}
+
+.nat_eq
+ FNcar(val, exp)
+ FNcdr(exp, exp)
+ FNcar(exp, exp)
+ FNeq(val, exp)
+ movne val, #NIL
+ mov pc, lr
+
+.nat_sub
+ FNcar(val, exp)
+ FNcdr(exp, exp)
+ FNcar(tmp, exp)
+ ldr val, [val, #4]
+ ldr tmp, [tmp, #4]
+ sub val, val, tmp
+ FNint(val, val)
+ mov pc, lr
+
+.nat_mul
+ mov val, #1
+.nat_mul_loop
+ teq exp, #NIL
+ beq nat_mul_done
+ FNcar(tmp, exp)
+ ldr tmp, [tmp, #4]
+ mul val, tmp, val
+ FNcdr(exp, exp)
+ b nat_mul_loop
+.nat_mul_done
+ FNint(val, val)
+ mov pc, lr
+
+
+.print_any ; val => ()
+ teq val, #NIL
+ beq print_nil
+ ldrb tmp, [val]
+ tst tmp, #F_LIST
+ beq print_list
+ and tmp, tmp, #T_TYPES
+ teq tmp, #T_SYMBOL
+ beq print_symbol
+ teq tmp, #T_INT
+ beq print_int
+
+.print_native
+ FNlog("[PROC]")
+ mov pc, lr
+
+.print_int
+ ldr r0, [val, #4]
+ adr r1, print_buffer
+ mov r2, #16
+ swi OS_ConvertInteger4
+ sub r1, r1, r0
+ swi OS_WriteN
+ mov pc, lr
+.print_buffer
+ EQUS "                "
+
+.print_list
+ swi OS_WriteI + ASC "("
+.print_list_loop
+ stmfd (sp)!, {val, lr}
+ ldr val, [val]
+ bl print_any
+ ldmfd (sp)!, {val, lr}
+ ldr val, [val, #4]
+ teq val, #NIL
+ swine OS_WriteI + ASC " "
+ bne print_list_loop
+ swi OS_WriteI + ASC ")"
+ mov pc, lr
+
+.print_nil
+ FNlog("()")
+ mov pc, lr
+
+.print_symbol
+ add r0, val, #1
+ swi OS_Write0
+ mov pc, lr
+
+.read_any ; exp => val
+ ldrb tmp, [exp]
+ teq tmp, #ASC "("
+ beq read_list
+ cmp tmp, #ASC "0"
+ blo read_symbol
+ cmp tmp, #ASC "9"
+ bhi read_symbol
+
+.read_number
+ mov val, #0
+.read_number_loop
+ ldrb tmp, [exp], #1
+ sub tmp, tmp, #ASC "0"
+ add val, val, val, lsl#2 ; x5
+ add val, tmp, val, lsl#1 ; x10 + digit
+ ldrb tmp, [exp]
+ cmp tmp, #ASC " "
+ blo read_number_done
+ teq tmp, #ASC ")"
+ bne read_number_loop
+.read_number_done
+ FNint(val, val)
+ mov pc, lr
+
+.read_symbol
+ mov val, exp
+.read_symbol_loop
+ add exp, exp, #1
+ ldrb tmp, [exp]
+ cmp tmp, #ASC " "
+ blo read_symbol_done
+ teq tmp, #ASC ")"
+ bne read_symbol_loop
+.read_symbol_done
+ FNsymbol(val, val, exp)
+ mov pc, lr
+
+.read_list
+ add exp, exp, #1 ; read (
+ mov val, #NIL ; init result
+ stmfd (sp)!, {val}
+ mov val, sp ; point to curren result slot
+.read_list_loop
+ ldrb tmp, [exp]
+ cmp tmp, #ASC " " ; skip whitespace
+ addlo exp, exp, #1
+ blo read_list_loop
+ teq tmp, #ASC ")"
+ beq read_list_done
+ stmfd (sp)!, {val, lr}
+ bl read_any
+ mov tmp, #NIL
+ FNcons(tmp, val, tmp)
+ ldmfd (sp)!, {val, lr}
+ str tmp, [val]
+ add val, tmp, #4
+ b read_list_loop
+.read_list_done
+ add exp, exp, #1 ; read )
+ ldmfd (sp)!, {val}
+ mov pc, lr
+
+.eval_any
+ teq exp, #NIL
+ moveq val, exp
+ moveq pc, lr
+ ldrb tmp, [exp]
+ tst tmp, #F_LIST
+ beq eval_form
+ and tmp, tmp, #T_TYPES
+ teq tmp, #T_SYMBOL
+ beq eval_symbol
+ teq tmp, #T_INT
+ beq eval_int
+
+ adr r0, eval_failed
+ orr lr, lr, #1 << 28 ; set V flag
+ movs pc, lr
+.eval_failed
+ EQUS "Eval failed"
+ EQUB 0
+ ALIGN
+
+.eval_form
+ ldr opr, [exp]
+
+ adr val, sym_lambda
+ FNeq(opr, val)
+ beq eval_lambda
+
+ adr val, sym_if
+ FNeq(opr, val)
+ beq eval_if
+
+ adr val, sym_define
+ FNeq(opr, val)
+ beq eval_define
+
+ stmfd (sp)!, {lr}
+ bl eval_list
+ ldmfd (sp)!, {lr}
+ movvs pc, lr
+ ldr opr, [val]
+ teq opr, #NIL
+ beq eval_no_proc
+ ldr tmp, [opr]
+ tst tmp, #F_LIST
+ beq eval_apply
+ and tmp, tmp, #T_TYPES
+ teq tmp, #T_NATIVE
+ beq eval_native
+
+.eval_no_proc
+ adr r0, eval_no_proc_error
+ orr lr, lr, #1 << 28 ; set V flag
+ movs pc, lr
+.eval_no_proc_error
+ EQUS "Operator is not a proc"
+ EQUB 0
+ ALIGN
+
+.sym_lambda
+ EQUB T_SYMBOL
+ EQUS "lambda"
+ EQUB 0
+.eval_lambda
+ FNcons(val, exp, env)
+ mov pc, lr
+
+.sym_if
+ EQUB T_SYMBOL
+ EQUS "if"
+ EQUB 0
+ EQUD 0
+.eval_if
+ FNcdr(exp, exp) ; (pred cons alt)
+ stmfd (sp)!, {exp, env, lr}
+ FNcar(exp, exp) ; pred
+ bl eval_any
+ ldmfd (sp)!, {exp, env, lr}
+ FNcdr(exp, exp) ; (cons alt)
+ teq val, #NIL
+ ldreq exp, [exp, #4]
+ FNcar(exp, exp)
+ b eval_any
+
+.sym_define ; (define x 10)
+ EQUB T_SYMBOL
+ EQUS "define"
+ EQUB 0
+.eval_define
+ FNcdr(exp, exp) ; (x 10)
+ stmfd (sp)!, {exp, env, lr}
+ FNcdr(exp, exp) ; (10)
+ FNcar(exp, exp) ; 10
+ bl eval_any
+ mov exp, #NIL
+ FNcons(val, val, exp) ; (10)
+ ldmfd (sp)!, {exp, env, lr}
+ FNcar(exp, exp) ; x
+ ; env cannot be NIL
+.eval_define_tail
+ FNcdr(tmp, env)
+ teq tmp, #NIL
+ movne env, tmp
+ bne eval_define_tail
+ FNcons(val, exp, val) ; (x 10)
+ str val, [env, #4] ; setcdr!
+ mov val, exp
+ mov pc, lr
+
+.eval_apply
+ ldr arg, [val, #4]
+ ldr env, [opr, #4]
+ ldr opr, [opr] ; (lambda vars body)
+ ldr opr, [opr, #4] ; (vars body)
+ ldr exp, [opr] ; vars
+.eval_extend
+ teq exp, #NIL
+ beq eval_extend_done
+ ldr val, [arg]
+ FNcons(env, val, env)
+ ldr val, [exp]
+ FNcons(env, val, env)
+ ldr arg, [arg, #4]
+ ldr exp, [exp, #4]
+ b eval_extend
+.eval_extend_done
+ ldr opr, [opr, #4] ; (body)
+ ldr exp, [opr] ; body
+ b eval_any
+
+.eval_native
+ ldr exp, [val, #4]
+ ldr tmp, [opr, #4]
+ mov pc, tmp
+
+.eval_list
+ teq exp, #NIL
+ moveq val, #NIL
+ moveq pc, lr
+ stmfd (sp)!, {exp, env, lr}
+ ldr exp, [exp]
+ bl eval_any
+ ldmfd (sp)!, {exp, env}
+ ldmvsfd (sp)!, {pc}
+ stmfd (sp)!, {val}
+ ldr exp, [exp, #4]
+ bl eval_list
+ ldmfd (sp)!, {exp}
+ ldmvsfd (sp)!, {pc}
+ ldmfd (sp)!, {lr}
+ FNcons(val, exp, val)
+ mov pc, lr
+
+.eval_symbol
+ teq env, #NIL
+ beq eval_symbol_unknown
+ ldr val, [env]
+ ldr env, [env, #4]
+ FNeq(val, exp)
+ ldreq val, [env]
+ moveq pc, lr
+ ldr env, [env, #4]
+ b eval_symbol
+.eval_symbol_unknown
+ ldr r0, [exp]
+ bic r0, r0, #&FF
+ orr r0, r0, #ASC " "
+ str r0, eval_symbol_unknown_3
+ ldr r0, [exp, #4]
+ str r0, eval_symbol_unknown_3 + 4
+ adr r0, eval_symbol_unknown_2
+ orr lr, lr, #1 << 28 ; set V flag
+ movs pc, lr
+.eval_symbol_unknown_2
+ EQUS "Unknown symbol -"
+.eval_symbol_unknown_3
+ EQUD 0
+ EQUD 0
+ EQUB 0
+ ALIGN
+
+.eval_int
+ mov val, exp
+ mov pc, lr
+]
+NEXT
+PRINT P% - code% " bytes"
+PRINT ""
+
+CALL test
+PRINT ""
+
+END
+
+DEF FNlog(s$)
+[OPT pass%
+ swi OS_WriteS
+ EQUS s$
+ EQUB 0
+ ALIGN
+]
+=""
+
+DEF FNalloc(Rd)
+[OPT pass%
+ ldr Rd, heap
+ ldr tmp, heap + 4
+ cmp Rd, tmp
+ movhs Rd, #0
+ movhs pc, lr
+ add tmp, Rd, #8
+ str tmp, heap
+ mov tmp, #NIL
+ str tmp, [Rd]
+ str tmp, [Rd, #4]
+]=""
+
+DEF FNcons(Rd, a, b)
+[OPT pass%
+ stmfd (sp)!, {lr}
+ FNalloc(lr)
+ str a, [lr]
+ str b, [lr, #4]
+ mov Rd, lr
+ ldmfd (sp)!, {lr}
+]=""
+
+DEF FNsymbol(Rd, start, end)
+[OPT pass%
+ stmfd (sp)!, {lr}
+ FNalloc(lr)
+ mov tmp, lr
+ mov tm2, #T_SYMBOL
+ strb tm2, [tmp], #1
+.tmp_loop
+ ldrb tm2, [start], #1
+ strb tm2, [tmp], #1
+ cmp start, end
+ blo tmp_loop
+ mov Rd, lr
+ ldmfd (sp)!, {lr}
+]=""
+
+DEF FNint(Rd, val)
+[OPT pass%
+ stmfd (sp)!, {lr}
+ FNalloc(lr)
+ mov tmp, #T_INT
+ strb tmp, [lr]
+ str val, [lr, #4]
+ mov Rd, lr
+ ldmfd (sp)!, {lr}
+]=""
+
+DEF FNcar(Rd, x)
+[OPT pass%
+ ldr Rd, [x, #0]
+]=""
+
+DEF FNcdr(Rd, x)
+[OPT pass%
+ ldr Rd, [x, #4]
+]=""
+
+DEF FNeq(a, b)
+[OPT pass%
+ ldr tmp, [a]
+ ldr tm2, [b]
+ teq tmp, tm2
+ ldreq tmp, [a, #4]
+ ldreq tm2, [b, #4]
+ teqeq tmp, tm2
+]=""
