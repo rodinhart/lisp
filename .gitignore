@@ -1,5 +1,6 @@
 archimedes/CMOS
 archimedes/FS/*.*
+!archimedes/FS/*.clj
 archimedes/ROMS
 archimedes/SRC
 archimedes/*.*

@@ -41,23 +41,23 @@ DIM heap% 9999
 FOR pass% = 0 TO 2 STEP 2
 P% = code%
 [OPT pass%
+.alloc_error
+ EQUD alloc_error_1
+.alloc_error_1
+ EQUS "Out of memory"
+ EQUB 0
+ ALIGN
+
 .heap
  EQUD heap%
  EQUD heap% + 10000
 
-.code
- EQUS "((define fac (lambda (n) (if (= n 0) 1 (* n (fac (- n 1)))))) (fac 5)) "
- EQUB 0
- ALIGN
-
 .test
  stmfd (sp)!, {lr}
- adr exp, code
- bl env_create
+ mov exp, r0
  bl read_any
-bl print_any
-ldmfd (sp)!, {pc}
  mov exp, val
+ bl env_create
 .run
  teq exp, #NIL
  beq run_done
@@ -85,7 +85,7 @@ ldmfd (sp)!, {pc}
  teq opr, #NIL
  ldmeqfd (sp)!, {exp, opr, val, pc}
 
- FNalloc(val)
+ FNalloc(val) ; check V flag
  mov tmp, #T_NATIVE
  str tmp, [val]
  str opr, [val, #4]
@@ -254,7 +254,7 @@ ldmfd (sp)!, {pc}
  add val, tmp, val, lsl#1 ; x10 + digit
  ldrb tmp, [exp]
  cmp tmp, #ASC " "
- blo read_number_done
+ bls read_number_done
  teq tmp, #ASC ")"
  bne read_number_loop
 .read_number_done
@@ -267,7 +267,7 @@ ldmfd (sp)!, {pc}
  add exp, exp, #1
  ldrb tmp, [exp]
  cmp tmp, #ASC " "
- blo read_symbol_done
+ bls read_symbol_done
  teq tmp, #ASC ")"
  bne read_symbol_loop
 .read_symbol_done
@@ -282,8 +282,8 @@ ldmfd (sp)!, {pc}
 .read_list_loop
  ldrb tmp, [exp]
  cmp tmp, #ASC " " ; skip whitespace
- addlo exp, exp, #1
- blo read_list_loop
+ addls exp, exp, #1
+ bls read_list_loop
  teq tmp, #ASC ")"
  beq read_list_done
  stmfd (sp)!, {val, lr}
@@ -291,6 +291,7 @@ ldmfd (sp)!, {pc}
  mov tmp, #NIL
  FNcons(tmp, val, tmp)
  ldmfd (sp)!, {val, lr}
+ movvs pc, lr
  str tmp, [val]
  add val, tmp, #4
  b read_list_loop
@@ -377,6 +378,7 @@ ldmfd (sp)!, {pc}
  FNcar(exp, exp) ; pred
  bl eval_any
  ldmfd (sp)!, {exp, env, lr}
+ movvs pc, lr
  FNcdr(exp, exp) ; (cons alt)
  teq val, #NIL
  ldreq exp, [exp, #4]
@@ -393,9 +395,11 @@ ldmfd (sp)!, {pc}
  FNcdr(exp, exp) ; (10)
  FNcar(exp, exp) ; 10
  bl eval_any
+ ldmvsfd (sp)!, {exp, env, pc}
  mov exp, #NIL
  FNcons(val, val, exp) ; (10)
  ldmfd (sp)!, {exp, env, lr}
+ movvs pc, lr
  FNcar(exp, exp) ; x
  ; env cannot be NIL
 .eval_define_tail
@@ -404,6 +408,7 @@ ldmfd (sp)!, {pc}
  movne env, tmp
  bne eval_define_tail
  FNcons(val, exp, val) ; (x 10)
+ movvs pc, lr
  str val, [env, #4] ; setcdr!
  mov val, exp
  mov pc, lr
@@ -419,8 +424,10 @@ ldmfd (sp)!, {pc}
  beq eval_extend_done
  ldr val, [arg]
  FNcons(env, val, env)
+ movvs pc, lr
  ldr val, [exp]
  FNcons(env, val, env)
+ movvs pc, lr
  ldr arg, [arg, #4]
  ldr exp, [exp, #4]
  b eval_extend
@@ -488,6 +495,10 @@ NEXT
 PRINT P% - code% " bytes"
 PRINT ""
 
+DIM file% 1023
+SYS "OS_File", 16, "app", file%, 0
+
+A% = file%
 CALL test
 PRINT ""
 
@@ -507,22 +518,24 @@ DEF FNalloc(Rd)
  ldr Rd, heap
  ldr tmp, heap + 4
  cmp Rd, tmp
- movhs Rd, #0
- movhs pc, lr
- add tmp, Rd, #8
- str tmp, heap
- mov tmp, #NIL
- str tmp, [Rd]
- str tmp, [Rd, #4]
+ addlo tmp, Rd, #8
+ strlo tmp, heap
+ movlo tmp, #NIL
+ strlo tmp, [Rd]
+ strlo tmp, [Rd, #4]
+ ldrhs r0, alloc_error
+ orrhss pc, pc, #1 << 28 ; set V flag
+ mov r0, r0
+ mov r0, r0
 ]=""
 
 DEF FNcons(Rd, a, b)
 [OPT pass%
  stmfd (sp)!, {lr}
  FNalloc(lr)
- str a, [lr]
- str b, [lr, #4]
- mov Rd, lr
+ strvc a, [lr]
+ strvc b, [lr, #4]
+ movvc Rd, lr
  ldmfd (sp)!, {lr}
 ]=""
 
@@ -530,6 +543,7 @@ DEF FNsymbol(Rd, start, end)
 [OPT pass%
  stmfd (sp)!, {lr}
  FNalloc(lr)
+ ldmvsfd (sp)!, {pc}
  mov tmp, lr
  mov tm2, #T_SYMBOL
  strb tm2, [tmp], #1
@@ -546,6 +560,7 @@ DEF FNint(Rd, val)
 [OPT pass%
  stmfd (sp)!, {lr}
  FNalloc(lr)
+ ldmvsfd (sp)!, {pc}
  mov tmp, #T_INT
  strb tmp, [lr]
  str val, [lr, #4]
