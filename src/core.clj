@@ -78,6 +78,6 @@
 
 (define first-ten (take 10 fib))
 
-(export first-ten)
+;;(export first-ten)
 
 ;; ---

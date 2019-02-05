@@ -1,4 +1,4 @@
-const { assert, identity } = require("./lang.js")
+const { identity } = require("./lang.js")
 const { Cons, EMPTY } = require("./list.js")
 
 const toCons = x => (x instanceof Array ? Cons(x[0], toCons(x[1])) : x)
@@ -50,16 +50,5 @@ const read = s => {
       .filter(identity)
   )
 }
-
-assert(read("nil") === null)
-assert(read("()") === EMPTY)
-assert(read("3") === 3)
-assert(read("hello") === "hello")
-
-assert(String(read("(1 2)")) === "(1 . (2 . ()))")
-assert(String(read("(1 2 . 3)")) === "(1 . (2 . 3))")
-assert(String(read("(1 (a) 3)")) === "(1 . ((a . ()) . (3 . ())))")
-
-assert(JSON.stringify(read("[1 2 a b]")) === `[1,2,"a","b"]`)
 
 module.exports = read
