@@ -1,6 +1,4 @@
-const { assert } = require("./lang.js")
 const { car, cdr, EMPTY, map, isCons, toArray } = require("./list.js")
-const read = require("./read.js")
 
 const ENV = "env"
 
@@ -10,8 +8,8 @@ const compile = (x, env) => {
     return env[x]
       ? x
       : x.startsWith("js.")
-        ? x.substr(3).replace(/\//, ".")
-        : `${ENV}["${x}"]`
+      ? x.substr(3).replace(/\//, ".")
+      : `${ENV}["${x}"]`
 
   if (x instanceof Array) return `[${x.map(y => compile(y, env)).join(", ")}]`
 
@@ -108,8 +106,8 @@ const compile = (x, env) => {
       !isCons(x)
         ? JSON.stringify(x)
         : x === EMPTY
-          ? `${ENV}["EMPTY"]`
-          : `cons(${_(car(x))}, ${_(cdr(x))})`
+        ? `${ENV}["EMPTY"]`
+        : `cons(${_(car(x))}, ${_(cdr(x))})`
 
     return _(car(cdr(x)))
   }
@@ -157,31 +155,5 @@ const compile = (x, env) => {
 
   return `(${op})(${toArray(params).join(", ")})`
 }
-
-assert(compile(null, {}) === null)
-assert(compile(42, {}) === 42)
-assert(compile("x", { x: true }) === "x")
-assert(compile("y", {}) === `${ENV}["y"]`)
-
-assert(
-  compile(read("(lambda (x y) (f y x))"), { f: true }) ===
-    "((x, y) => (f)(y, x))"
-)
-assert(compile(read("(lambda x x)"), {}) === "((...x) => x)")
-assert(compile(read("(lambda () 42)"), {}) === "(() => 42)")
-
-assert(
-  compile(read("(if x 42 (f 1 2))"), { x: true, f: true }) ===
-    "((x) ? (42) : ((f)(1, 2)))"
-)
-
-assert(compile(read("(define x 42)"), {}) === `${ENV}["x"] = (42), "x"`)
-
-assert(
-  compile(read("(quote (1 (add 1 1)))"), { add: true }) ===
-    `cons(1, cons(cons("add", cons(1, cons(1, ${ENV}["EMPTY"]))), ${ENV}["EMPTY"]))`
-)
-
-assert(compile(read("(f x y)"), { f: true, x: true, y: true }) === "(f)(x, y)")
 
 module.exports = compile

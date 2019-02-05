@@ -23,7 +23,7 @@ const _ = () => {
       exp => {
         const expanded = macroexpand(exp, env)
         const code = compile(expanded, {})
-        console.log(code)
+        // console.log(code)
         return sandbox(code, env)
       },
       prn,

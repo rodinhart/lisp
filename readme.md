@@ -4,19 +4,13 @@ Various lisp implementations.
 
 ## JavaScript
 
-Lisp implementation in JavaScript that compiles to JavaScript and then evals the resulting code. Goal is maximum interoperability with JavaScript, so calling conventions, using Iterables, built in data structures, import/export semantics etc.
+Lisp implementation in JavaScript that compiles to JavaScript and then evals the resulting code. Goal is maximum interoperability with JavaScript.
 
-```js
-f(1, 2, 3) // (f 1 2 3)
-(x, y, ...z) => z // (lambda (x y .z) z)
-```
+### Calling convention
 
-### List
-
-List represents the traditional singly linked list in a lisp using cons cells. A list is also an Iterable, and implements ISeq.
-
-```clj
-(define lst (cons 2 (cons 3 ())))
+```scheme
+(f x y) ; f(x, y)
+(lambda (x y . z) z) ; (x, y, ...z) => z
 ```
 
 ### ISeq
@@ -25,11 +19,19 @@ ISeq is a simple interface providing the first element in the sequence, and the 
 
 To build a sequence `seq` can be used, and this results in a lazy sequence.
 
-```clj
+```scheme
 (define ones (seq 1 ones))
 
 (first ones) ; 1
 (first (rest ones)) ; 1
+```
+
+### List
+
+List represents the traditional singly linked list in a lisp using cons cells. A list is also an Iterable, and implements ISeq.
+
+```scheme
+(define lst (cons 2 (cons 3 ())))
 ```
 
 ### TODO
@@ -37,7 +39,6 @@ To build a sequence `seq` can be used, and this results in a lazy sequence.
 - define proper interfaces (like ISeq) using Symbols on prototypes
 - use generic fold (for Iterable) as opposed to special for list
   - same with toArray, concat, length, map
-- is ISeq.isEmpty needed, null punning?
 - Throw error on unknown symbol
 - Rename env in compile(exp,env) to bound? scope?
 - Rename repl.js to makeModule?
@@ -48,7 +49,7 @@ To build a sequence `seq` can be used, and this results in a lazy sequence.
 
 (these need to be checked in repl)
 
-```clj
+```scheme
 (define x 10)
 
 (export foobar)

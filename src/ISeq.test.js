@@ -1,7 +1,7 @@
-const { first, getSeq, isEmpty, rest } = require("./ISeq.js")
+const { first, isEmpty, ISeq, rest } = require("./ISeq.js")
 
 test("ISeq", () => {
-  let t = getSeq([2, 3, 5])
+  let t = ISeq([2, 3, 5])
   expect(first(t)).toEqual(2)
 
   t = rest(t)

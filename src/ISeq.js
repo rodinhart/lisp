@@ -8,7 +8,7 @@ const seqArray = (xs, i) =>
       }
     : null
 
-const getSeq = x => {
+const ISeq = x => {
   if (x === null || x === EMPTY) return null
 
   if (typeof x.first === "function" && typeof x.rest === "function") return x
@@ -18,9 +18,9 @@ const getSeq = x => {
   throw new Error(`Failed to get ISeq for ${x}`)
 }
 
-const first = x => getSeq(x).first()
-const rest = x => getSeq(x).rest()
-const isEmpty = x => getSeq(x) === null
+const first = x => ISeq(x).first()
+const rest = x => ISeq(x).rest()
+const isEmpty = x => ISeq(x) === null
 
 const Seq = (first, rest) => ({
   first,
@@ -38,8 +38,8 @@ const Seq = (first, rest) => ({
 
 module.exports = {
   first,
-  getSeq,
   isEmpty,
+  ISeq,
   rest,
   Seq
 }

@@ -1,14 +1,11 @@
 const IIterable = x => {
-  if (
-    x &&
-    typeof x === "object" &&
-    x.constructor === Object &&
-    !x[Symbol.iterator]
-  ) {
-    return Object.entries(x)
-  }
+  if (x) {
+    if (x[Symbol.iterator]) return x
 
-  if (x && x[Symbol.iterator]) return x
+    if (typeof x === "object" && x.constructor === Object) {
+      return Object.entries(x)
+    }
+  }
 
   throw new Error("Failed to get IIterable for ${x}")
 }
