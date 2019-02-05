@@ -1,4 +1,4 @@
-const { car, cdr, Cons, EMPTY, isCons, toArray } = require("./list.js")
+const { car, cdr, Cons, EMPTY, isCons } = require("./list.js")
 
 // map that preserves referential equal if possible
 const map = f => xs => {
@@ -32,7 +32,7 @@ const macroexpand = (x, env) => {
     return xs
   }
 
-  return macroexpand(env[op].apply(null, toArray(cdr(xs))), env)
+  return macroexpand(env[op](...cdr(xs)), env)
 }
 
 module.exports = macroexpand

@@ -1,6 +1,6 @@
 const compile = require("./compile.js")
+const { fold } = require("./IIterable.js")
 const { thread } = require("./lang.js")
-const { fold } = require("./list.js")
 const macroexpand = require("./macroexpand.js")
 const primitive = require("./primitive.js")
 const read = require("./read.js")
@@ -11,11 +11,16 @@ const lisp = (imports, source) => {
 
   return thread(source, [
     s => read(`(${s})`),
-    fold((r, exp) => {
-      const expanded = macroexpand(exp, env)
-      const code = compile(expanded, {})
-      return sandbox(code, env)
-    }, null),
+    x =>
+      fold(
+        (r, exp) => {
+          const expanded = macroexpand(exp, env)
+          const code = compile(expanded, {})
+          return sandbox(code, env)
+        },
+        null,
+        x
+      ),
     _ => env
   ])
 }

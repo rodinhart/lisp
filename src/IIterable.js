@@ -10,6 +10,25 @@ const IIterable = x => {
   throw new Error("Failed to get IIterable for ${x}")
 }
 
+const fold = (fn, init, iter) => {
+  let r = init
+  for (const val of iter) {
+    r = fn(r, val)
+  }
+
+  return r
+}
+
+const map = (fn, iter) => ({
+  [Symbol.iterator]: function*() {
+    for (const val of iter) {
+      yield fn(val)
+    }
+  }
+})
+
 module.exports = {
-  IIterable
+  IIterable,
+  fold,
+  map
 }
