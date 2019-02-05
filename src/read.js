@@ -1,5 +1,6 @@
 const { Cons, EMPTY } = require("./list.js")
 
+// needed to convert array tuples to proper Cons
 const toCons = x => (x instanceof Array ? Cons(x[0], toCons(x[1])) : x)
 
 const read = s => {

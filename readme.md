@@ -36,6 +36,9 @@ List represents the traditional singly linked list in a lisp using cons cells. A
 
 ### TODO
 
+- test calling conventions
+  - call lisp function: f(1, 2, 3)
+  - call js function (apply f lst)
 - define proper interfaces (like ISeq) using Symbols on prototypes
 - Throw error on unknown symbol
 - Rename env in compile(exp,env) to bound? scope?

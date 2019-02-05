@@ -1,3 +1,3 @@
 const { foobar } = require("./test.clj")
 
-console.log("RODIN", [...foobar])
+console.log("RODIN", foobar)

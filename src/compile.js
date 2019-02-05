@@ -108,7 +108,7 @@ const compile = (x, env) => {
         ? JSON.stringify(x)
         : x === EMPTY
         ? `${ENV}["EMPTY"]`
-        : `cons(${_(car(x))}, ${_(cdr(x))})`
+        : `${ENV}["cons"](${_(car(x))}, ${_(cdr(x))})`
 
     return _(car(cdr(x)))
   }
