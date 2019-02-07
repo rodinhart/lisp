@@ -1,6 +1,6 @@
 const compile = require("./compile.js")
-const { fold } = require("./IIterable.js")
 const { thread } = require("./lang.js")
+const { fold } = require("./list.js")
 const macroexpand = require("./macroexpand.js")
 const primitive = require("./primitive.js")
 const read = require("./read.js")

@@ -1,34 +1,52 @@
 const EMPTY = {
   _type: "Cons",
-  toString: () => "()",
-  [Symbol.iterator]: function*() {}
+  toString: () => "()"
 }
 
 const Cons = (car, cdr) => ({
   _type: "Cons",
+  car,
+  cdr,
   toString: () => `(${car} . ${cdr})`,
   first: () => car,
-  rest: () => cdr,
-  [Symbol.iterator]: function*() {
-    let c = Cons(car, cdr)
-    while (c !== EMPTY) {
-      yield c.first()
-      c = c.rest()
-    }
-  }
+  rest: () => cdr
 })
 
-// isCons
 const isCons = p => p && p._type === "Cons"
 
-const car = p => p.first()
-const cdr = p => p.rest()
+const car = p => p.car
+const cdr = p => p.cdr
+
+// fold :: (r -> a -> r) -> r -> List a -> r
+const fold = (f, init, xs) => {
+  let r = init
+  let c = xs
+  while (c !== EMPTY) {
+    r = f(r, car(c))
+    c = cdr(c)
+  }
+
+  return r
+}
+
+// map :: (a -> b) -> List a -> [b]
+const map = (f, xs) => {
+  const r = []
+  let c = xs
+  while (c !== EMPTY) {
+    r.push(f(car(c)))
+    c = cdr(c)
+  }
+
+  return r
+}
 
 module.exports = {
+  EMPTY,
   car,
   cdr,
   Cons,
-  cons: Cons,
-  EMPTY,
-  isCons
+  fold,
+  isCons,
+  map
 }

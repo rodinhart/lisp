@@ -5,9 +5,10 @@
                 (cons (first x) (_list (rest x))))))
 (define list (lambda x (_list x)))
 
+
 ;; Concatenate two lists
 (define concat (lambda (xs ys)
-                (if (isEmpty? xs)
+                (if (= xs ())
                  ys
                  (cons
                   (car xs)
@@ -17,21 +18,21 @@
 (define destruct (lambda (pat arg)
                   (if (isAtom pat)
                    (cons arg ())
-                   (if (isEmpty? pat)
+                   (if (= pat EMPTY)
                     ()
                     (concat
-                     (destruct (first pat) (list (quote first) arg))
-                     (destruct (rest pat) (list (quote rest) arg)))))))
+                     (destruct (car pat) (list (quote first) arg))
+                     (destruct (cdr pat) (list (quote rest) arg)))))))
 
 ;; Flatten a parameter pattern
 (define flatten (lambda (pat)
                  (if (isAtom pat)
                   (cons pat ())
-                  (if (isEmpty? pat)
+                  (if (= pat EMPTY)
                     ()
                     (concat
-                      (flatten (first pat))
-                      (flatten (rest pat)))))))
+                      (flatten (car pat))
+                      (flatten (cdr pat)))))))
 
 ;; Function definition with destructuring
 (define fn (macro (params body)
@@ -46,14 +47,15 @@
                 (destruct params (quote t))))))
 
 ;; Convenience macro for defining named functions
-(define defn (macro x
+;; (defn f (x y . z) z)
+(define defn (macro (name params body)
               (list
                 (quote define)
-                (first x)
+                name
                 (list
                   (quote fn)
-                  (first (rest x))
-                  (first (rest (rest x)))))))
+                  params
+                  body))))
 
 ;; Convenience macro for defining macros
 (define defmacro (macro (name params body)
@@ -64,7 +66,7 @@
                       (quote macro)
                       params
                       body))))
-
+                      
 ;; test
 (defn take (n xs)
  (if (> n 0)

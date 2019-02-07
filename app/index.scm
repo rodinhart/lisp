@@ -1,3 +1,3 @@
-;(import core ../src/core.scm)
+(import core ../src/core.scm)
 
-(js.console/log (prn (list 2 3 4)))
+(js.console/log (prn core/first-ten))

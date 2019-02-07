@@ -1,12 +1,12 @@
-const { car, cdr, Cons, EMPTY, isCons } = require("./list.js")
+const { EMPTY, car, cdr, Cons, isCons, map } = require("./list.js")
 
-// map that preserves referential equal if possible
-const map = f => xs => {
+// map2 that preserves referential equal if possible
+const map2 = f => xs => {
   if (xs === EMPTY) return EMPTY
 
   if (isCons(xs)) {
     const y = f(car(xs))
-    const ys = map(f)(cdr(xs))
+    const ys = map2(f)(cdr(xs))
     return y === car(xs) && ys === cdr(xs) ? xs : Cons(y, ys)
   }
 
@@ -17,10 +17,10 @@ const macroexpand = (x, env) => {
   if (!isCons(x) || x === EMPTY) return x
 
   let xs = x
-  let ys = map(x => macroexpand(x, env))(xs)
+  let ys = map2(x => macroexpand(x, env))(xs)
   while (ys !== xs) {
     xs = ys
-    ys = map(y => macroexpand(y, env))(xs)
+    ys = map2(y => macroexpand(y, env))(xs)
   }
 
   const op = car(xs)
@@ -32,7 +32,7 @@ const macroexpand = (x, env) => {
     return xs
   }
 
-  return macroexpand(env[op](...cdr(xs)), env)
+  return macroexpand(env[op](...map(x => x, cdr(xs))), env)
 }
 
 module.exports = macroexpand

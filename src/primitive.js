@@ -1,4 +1,4 @@
-const { EMPTY, car, cdr, cons } = require("./list.js")
+const { EMPTY, car, cdr, Cons } = require("./list.js")
 const { first, isEmpty, rest, Seq } = require("./ISeq.js")
 const prn = require("./print.js")
 
@@ -12,7 +12,7 @@ module.exports = {
   EMPTY,
   car,
   cdr,
-  cons,
+  cons: Cons,
   isAtom,
   prn,
   "+": (...xs) => xs.reduce((a, b) => a + b, 0),

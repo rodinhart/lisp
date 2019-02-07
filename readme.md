@@ -11,13 +11,12 @@ Implementation in JavaScript that compiles to JavaScript and then evals the resu
 ```scheme
 (f x y) ; f(x, y)
 (lambda (x y . z) z) ; (x, y, ...z) => z
+(define list (lambda x x)); (...x) => x Note that this returns an IIterable
 ```
 
-### ISeq
+### seq
 
-ISeq is a simple interface providing the `first` element in the sequence, and the `rest`. Is also includes `isEmpty?` to test a sequence.
-
-To build a sequence `seq` can be used, and this results in a lazy sequence.
+To build an IIterable `seq` can be used, and this results in a lazy sequence.
 
 ```scheme
 (define ones (seq 1 ones))
@@ -28,14 +27,17 @@ To build a sequence `seq` can be used, and this results in a lazy sequence.
 
 ### List
 
-List represents the traditional singly linked list in a lisp using cons cells. A list is also an Iterable, and implements ISeq.
+List represents the traditional singly linked list in a lisp using cons cells.
 
 ```scheme
 (define lst (cons 2 (cons 3 ())))
+(define pair (cons 2 3))
 ```
 
 ### TODO
 
+- unit testing of core.scm
+- fold and map if list is not list, e.g. (2 3 . 4)
 - test calling conventions
   - call lisp function: f(1, 2, 3)
   - call js function (apply f lst)

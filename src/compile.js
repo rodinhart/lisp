@@ -1,5 +1,4 @@
-const { map } = require("./IIterable.js")
-const { car, cdr, EMPTY, isCons } = require("./list.js")
+const { EMPTY, car, cdr, isCons, map } = require("./list.js")
 
 const ENV = "env"
 
@@ -132,11 +131,6 @@ const compile = (x, env) => {
       car(cdr(cdr(x))),
       env
     )})`
-    // return `({
-    //   first: () => ${compile(car(cdr(x)))},
-    //   rest: () => ${compile(car(cdr(cdr(x))))},
-    //   toString: () => "[Seq]"
-    // })`
   }
 
   // interop
@@ -154,7 +148,7 @@ const compile = (x, env) => {
   op = compile(op, env)
   const params = map(x => compile(x, env), cdr(x))
 
-  return `(${op})(${[...params].join(", ")})`
+  return `(${op})(${params.join(", ")})`
 }
 
 module.exports = compile
