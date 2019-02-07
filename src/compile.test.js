@@ -22,7 +22,7 @@ test("compile", () => {
   expect(compile(read("(define x 42)"), {})).toEqual(`${ENV}["x"] = (42), "x"`)
 
   expect(compile(read("(quote (1 (add 1 1)))"), { add: true })).toEqual(
-    `cons(1, cons(cons("add", cons(1, cons(1, ${ENV}["EMPTY"]))), ${ENV}["EMPTY"]))`
+    `${ENV}["cons"](1, ${ENV}["cons"](${ENV}["cons"]("add", ${ENV}["cons"](1, ${ENV}["cons"](1, ${ENV}["EMPTY"]))), ${ENV}["EMPTY"]))`
   )
 
   expect(compile(read("(f x y)"), { f: true, x: true, y: true })).toEqual(

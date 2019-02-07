@@ -1,12 +1,12 @@
 const path = require("path")
 
 module.exports = {
-  entry: "./app/index.js",
+  entry: "./app/index.scm",
   mode: "production",
   module: {
     rules: [
       {
-        test: /\.clj$/,
+        test: /\.scm$/,
         use: [
           {
             loader: path.resolve("./src/lisp-loader.js")

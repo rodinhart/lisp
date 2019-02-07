@@ -33,6 +33,10 @@ const prn = x => {
     return `(${r.join(" ")})`
   }
 
+  if (typeof x === "function") {
+    return "[procedure]"
+  }
+
   // if (x && typeof x === "object") {
   //   return `{${Object.entries(x)
   //     .filter(

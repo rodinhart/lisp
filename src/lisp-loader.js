@@ -10,7 +10,9 @@ module.exports = source => {
       fold(
         (imports, exp) => {
           if (isCons(exp) && car(exp) === "import") {
-            imports.push(`require("${car(cdr(exp))}")`)
+            imports.push(
+              `{"${car(cdr(exp))}": require("${car(cdr(cdr(exp)))}")}`
+            )
           }
 
           return imports
@@ -19,7 +21,7 @@ module.exports = source => {
         x
       ),
     imports => `module.exports = require("../src/lisp.js")(
-      Object.assign({}, ${imports.join(", ")}),
+      Object.assign({}, require("../src/core.scm"), ${imports.join(", ")}),
       \`${source}\`
     )`
   ])

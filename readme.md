@@ -4,7 +4,7 @@ Various lisp implementations.
 
 ## JavaScript
 
-Lisp implementation in JavaScript that compiles to JavaScript and then evals the resulting code. Goal is maximum interoperability with JavaScript.
+Implementation in JavaScript that compiles to JavaScript and then evals the resulting code. Goal is maximum interoperability with JavaScript.
 
 ### Calling convention
 
@@ -15,7 +15,7 @@ Lisp implementation in JavaScript that compiles to JavaScript and then evals the
 
 ### ISeq
 
-ISeq is a simple interface providing the first element in the sequence, and the rest. Is also includes `isEmpty` to test a sequence.
+ISeq is a simple interface providing the `first` element in the sequence, and the `rest`. Is also includes `isEmpty?` to test a sequence.
 
 To build a sequence `seq` can be used, and this results in a lazy sequence.
 
@@ -39,16 +39,14 @@ List represents the traditional singly linked list in a lisp using cons cells. A
 - test calling conventions
   - call lisp function: f(1, 2, 3)
   - call js function (apply f lst)
+- support arrays and maps
 - define proper interfaces (like ISeq) using Symbols on prototypes
 - Throw error on unknown symbol
 - Rename env in compile(exp,env) to bound? scope?
-- Rename repl.js to makeModule?
 - How to compile ahead of time without running costly expressions?
   - Need to run some expressions: they might be defining macros
 
 ### Reference
-
-(these need to be checked in repl)
 
 ```scheme
 (define x 10)
@@ -57,7 +55,7 @@ List represents the traditional singly linked list in a lisp using cons cells. A
 
 (if x y z)
 
-(import ./util.clj)
+(import util ./util.clj)
 
 (lambda (x y) (+ x y))
 

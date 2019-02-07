@@ -1,13 +1,13 @@
 ;; Take a sequence of operands and put them in a list
 (define _list (lambda (x)
-               (if (isEmpty x)
+               (if (isEmpty? x)
                 ()
                 (cons (first x) (_list (rest x))))))
 (define list (lambda x (_list x)))
 
 ;; Concatenate two lists
 (define concat (lambda (xs ys)
-                (if (isEmpty xs)
+                (if (isEmpty? xs)
                  ys
                  (cons
                   (car xs)
@@ -17,7 +17,7 @@
 (define destruct (lambda (pat arg)
                   (if (isAtom pat)
                    (cons arg ())
-                   (if (isEmpty pat)
+                   (if (isEmpty? pat)
                     ()
                     (concat
                      (destruct (first pat) (list (quote first) arg))
@@ -27,7 +27,7 @@
 (define flatten (lambda (pat)
                  (if (isAtom pat)
                   (cons pat ())
-                  (if (isEmpty pat)
+                  (if (isEmpty? pat)
                     ()
                     (concat
                       (flatten (first pat))

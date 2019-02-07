@@ -9,8 +9,12 @@ const compile = (x, env) => {
     return env[x]
       ? x
       : x.startsWith("js.")
-      ? x.substr(3).replace(/\//, ".")
-      : `${ENV}["${x}"]`
+      ? x.substr(3).replace(/\//g, ".")
+      : `${ENV}${x
+          .replace(/\//g, ".")
+          .split(".")
+          .map(x => `["${x}"]`)
+          .join("")}`
 
   if (x instanceof Array) return `[${x.map(y => compile(y, env)).join(", ")}]`
 
@@ -136,10 +140,6 @@ const compile = (x, env) => {
   }
 
   // interop
-  if (op === "export") {
-    return `module.exports["${car(cdr(x))}"] = ${ENV}["${car(cdr(x))}"]`
-  }
-
   if (op === "import") {
     return "" //`Object.assign(${ENV}, require("${car(cdr(x))}"))`
   }
