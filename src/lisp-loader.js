@@ -8,9 +8,15 @@ module.exports = source => {
     x =>
       fold(
         (imports, exp) => {
-          if (isCons(exp) && car(exp) === "import") {
+          if (
+            isCons(exp) &&
+            typeof car(exp) === "symbol" &&
+            car(exp) === Symbol.for("import")
+          ) {
             imports.push(
-              `{"${car(cdr(exp))}": require("${car(cdr(cdr(exp)))}")}`
+              `{"${Symbol.keyFor(car(cdr(exp)))}": require("${Symbol.keyFor(
+                car(cdr(cdr(exp)))
+              )}")}`
             )
           }
 

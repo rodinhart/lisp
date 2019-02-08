@@ -11,7 +11,7 @@ Implementation in JavaScript that compiles to JavaScript and then evals the resu
 ```scheme
 (f x y) ; f(x, y)
 (lambda (x y . z) z) ; (x, y, ...z) => z
-(define list (lambda x x)); (...x) => x Note that this returns an IIterable
+(define list (lambda x x)); (...x) => x Note that this returns an Iseq
 ```
 
 ### seq
@@ -36,6 +36,8 @@ List represents the traditional singly linked list in a lisp using cons cells.
 
 ### TODO
 
+- add strings with spaces
+- add (.getContext canvas "2d")
 - unit testing of core.scm
 - fold and map if list is not list, e.g. (2 3 . 4)
 - test calling conventions
@@ -47,6 +49,8 @@ List represents the traditional singly linked list in a lisp using cons cells.
 - Rename env in compile(exp,env) to bound? scope?
 - How to compile ahead of time without running costly expressions?
   - Need to run some expressions: they might be defining macros
+- add arrays []
+- add maps { "a" 1 "b" 2}
 
 ### Reference
 

@@ -4,12 +4,17 @@ const ENV = "env"
 
 const compile = (x, env) => {
   if (x === null) return null
-  if (typeof x === "string")
-    return env[x]
-      ? x
-      : x.startsWith("js.")
-      ? x.substr(3).replace(/\//g, ".")
-      : `${ENV}${x
+  if (typeof x === "string") return `"${x}"`
+  if (typeof x === "number") return String(x)
+
+  if (typeof x === "symbol")
+    return env[Symbol.keyFor(x)]
+      ? Symbol.keyFor(x)
+      : Symbol.keyFor(x).startsWith("js.")
+      ? Symbol.keyFor(x)
+          .substr(3)
+          .replace(/\//g, ".")
+      : `${ENV}${Symbol.keyFor(x)
           .replace(/\//g, ".")
           .split(".")
           .map(x => `["${x}"]`)
@@ -22,19 +27,19 @@ const compile = (x, env) => {
   if (x === EMPTY) return `${ENV}["EMPTY"]`
 
   let op = car(x)
-  if (op === "lambda" || op === "macro") {
+  if (op === Symbol.for("lambda") || op === Symbol.for("macro")) {
     // (lambda (x y) (f x y))
     const args = []
     const newEnv = { ...env }
     let p = car(cdr(x))
     while (p !== EMPTY) {
       if (isCons(p)) {
-        args.push(car(p))
-        newEnv[car(p)] = true
+        args.push(Symbol.keyFor(car(p)))
+        newEnv[Symbol.keyFor(car(p))] = true
         p = cdr(p)
       } else {
-        args.push(`...${p}`)
-        newEnv[p] = true
+        args.push(`...${Symbol.keyFor(p)}`)
+        newEnv[Symbol.keyFor(p)] = true
         p = EMPTY
       }
     }
@@ -42,32 +47,33 @@ const compile = (x, env) => {
     const body = compile(car(cdr(cdr(x))), newEnv)
 
     let code = `((${args.join(", ")}) => ${body})`
-    if (op === "macro") {
+    if (op === Symbol.for("macro")) {
       code = `Object.assign(${code}, {macro:true})`
     }
 
     return code
   }
 
-  if (op === "if") {
+  if (op === Symbol.for("if")) {
     const condition = compile(car(cdr(x)), env)
     const consequent = compile(car(cdr(cdr(x))), env)
     const alternative = compile(car(cdr(cdr(cdr(x)))), env)
     return `((${condition}) ? (${consequent}) : (${alternative}))`
   }
 
-  if (op === "define") {
-    const name = car(cdr(x))
+  if (op === Symbol.for("define")) {
+    const name = Symbol.keyFor(car(cdr(x)))
     const value = compile(car(cdr(cdr(x))), env)
     return `${ENV}["${name}"] = (${value}), "${name}"`
   }
 
-  if (op === "loop") {
+  if (op === Symbol.for("loop")) {
+    // (loop (x 5) (if (= x 0) x (recur (- x 1))))
     const names = []
     const inits = []
     let p = car(cdr(x))
     while (p !== EMPTY) {
-      names.push(car(p))
+      names.push(Symbol.keyFor(car(p)))
       inits.push(compile(car(cdr(p)), env))
       p = cdr(cdr(p))
     }
@@ -105,10 +111,12 @@ const compile = (x, env) => {
     })()`
   }
 
-  if (op === "quote") {
+  if (op === Symbol.for("quote")) {
     const _ = x =>
       !isCons(x)
-        ? JSON.stringify(x)
+        ? typeof x === "symbol"
+          ? `Symbol.for("${Symbol.keyFor(x)}")`
+          : JSON.stringify(x)
         : x === EMPTY
         ? `${ENV}["EMPTY"]`
         : `${ENV}["cons"](${_(car(x))}, ${_(cdr(x))})`
@@ -116,7 +124,7 @@ const compile = (x, env) => {
     return _(car(cdr(x)))
   }
 
-  if (op === "time") {
+  if (op === Symbol.for("time")) {
     return `(() => {
       let __TIME__ = new Date().getTime()
       const __RESULT__ = (${compile(car(cdr(x)), env)})
@@ -126,7 +134,7 @@ const compile = (x, env) => {
     })()`
   }
 
-  if (op === "seq") {
+  if (op === Symbol.for("seq")) {
     return `${ENV}["Seq"](() => ${compile(car(cdr(x)), env)}, () => ${compile(
       car(cdr(cdr(x))),
       env
@@ -134,15 +142,8 @@ const compile = (x, env) => {
   }
 
   // interop
-  if (op === "import") {
+  if (op === Symbol.for("import")) {
     return "" //`Object.assign(${ENV}, require("${car(cdr(x))}"))`
-  }
-
-  if (op === "get") {
-    return `((${compile(car(cdr(x)), env)})["${compile(
-      car(cdr(cdr(x))),
-      env
-    )}"])`
   }
 
   op = compile(op, env)

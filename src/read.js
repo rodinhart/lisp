@@ -38,7 +38,10 @@ const read = s => {
 
     if (f === "nil") return null
 
-    return String(Number(f)) === f ? Number(f) : f
+    if (String(Number(f)) === f) return Number(f)
+    if (f[0] === `"`) return f.substr(1, f.length - 2)
+
+    return Symbol.for(f)
   }
 
   return _(

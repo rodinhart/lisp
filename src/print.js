@@ -47,7 +47,10 @@ const prn = x => {
   //     .join(", ")}}`
   // }
 
-  return String(x)
+  if (typeof x === "number") return String(x)
+  if (typeof x === "symbol") return Symbol.keyFor(x)
+
+  return `"${x}"`
 }
 
 module.exports = prn

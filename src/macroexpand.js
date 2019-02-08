@@ -25,14 +25,14 @@ const macroexpand = (x, env) => {
 
   const op = car(xs)
   if (
-    typeof op !== "string" ||
-    typeof env[op] !== "function" ||
-    !env[op].macro
+    typeof op !== "symbol" ||
+    typeof env[Symbol.keyFor(op)] !== "function" ||
+    !env[Symbol.keyFor(op)].macro
   ) {
     return xs
   }
 
-  return macroexpand(env[op](...map(x => x, cdr(xs))), env)
+  return macroexpand(env[Symbol.keyFor(op)](...map(x => x, cdr(xs))), env)
 }
 
 module.exports = macroexpand
