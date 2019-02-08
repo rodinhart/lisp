@@ -5,7 +5,7 @@ describe("Cons", () => {
     expect(String(Cons(2, Cons(3, EMPTY)))).toEqual("(2 . (3 . ()))")
   })
 
-  test("list without nil", () => {
+  test("list without empty", () => {
     expect(String(Cons(2, Cons(3, 4)))).toEqual("(2 . (3 . 4))")
   })
 

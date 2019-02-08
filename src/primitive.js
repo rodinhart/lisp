@@ -14,10 +14,23 @@ module.exports = {
   cdr,
   cons: Cons,
   isAtom,
+  object: (...xs) => {
+    const r = {}
+    for (let i = 0; i + 1 < xs.length; i += 2) {
+      r[xs[i]] = xs[i + 1]
+    }
+
+    return r
+  },
   prn,
   "+": (...xs) => xs.reduce((a, b) => a + b, 0),
   "-": (...xs) => xs[0] - xs[1],
   ">": (...xs) => xs[0] > xs[1],
   "=": (...xs) => xs[0] === xs[1],
-  "*": (...xs) => xs.reduce((a, b) => a * b, 1)
+  "*": (...xs) => xs.reduce((a, b) => a * b, 1),
+
+  js: {
+    console: console,
+    Math: Math
+  }
 }

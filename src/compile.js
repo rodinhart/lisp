@@ -3,26 +3,34 @@ const { EMPTY, car, cdr, isCons, map } = require("./list.js")
 const ENV = "env"
 
 const compile = (x, env) => {
-  if (x === null) return null
+  if (
+    x === undefined ||
+    x === null ||
+    typeof x === "boolean" ||
+    typeof x === "number"
+  ) {
+    return String(x)
+  }
+
   if (typeof x === "string") return `"${x}"`
-  if (typeof x === "number") return String(x)
 
-  if (typeof x === "symbol")
-    return env[Symbol.keyFor(x)]
-      ? Symbol.keyFor(x)
-      : Symbol.keyFor(x).startsWith("js.")
-      ? Symbol.keyFor(x)
-          .substr(3)
-          .replace(/\//g, ".")
-      : `${ENV}${Symbol.keyFor(x)
-          .replace(/\//g, ".")
-          .split(".")
-          .map(x => `["${x}"]`)
-          .join("")}`
+  if (typeof x === "symbol") {
+    const name = Symbol.keyFor(x)
+    if (env[name]) return name // in scope
 
-  if (x instanceof Array) return `[${x.map(y => compile(y, env)).join(", ")}]`
+    const gets = name
+      .replace(/\//g, ".")
+      .split(".")
+      .map(x => `["${x}"]`)
+    return `${ENV}${gets.join("")}`
+  }
 
-  if (!isCons(x)) return x
+  if (x instanceof Array) return `[${x.map(y => compile(y, env)).join(",")}]`
+
+  if (!isCons(x))
+    return `{${Object.entries(x)
+      .map(([key, val]) => `"${key}":${compile(val, env)}`)
+      .join(",")}}`
 
   if (x === EMPTY) return `${ENV}["EMPTY"]`
 

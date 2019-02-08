@@ -71,7 +71,7 @@
 (defn take (n xs)
  (if (> n 0)
   (seq (first xs) (take (- n 1) (rest xs)))
-  nil))
+  null))
 
 (defn zip (f xs ys)
  (seq (f (first xs) (first ys)) (zip f (rest xs) (rest ys))))

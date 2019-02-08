@@ -36,9 +36,26 @@ const read = s => {
       return r
     }
 
-    if (f === "nil") return null
+    if (f === "{") {
+      const r = [Symbol.for("object"), EMPTY]
+      let c = r
+      while (x.length && x[0] !== "}") {
+        c[1] = [_(x), EMPTY]
+        c = c[1]
+      }
+
+      if (x.shift() !== "}") throw new Error("Missing }")
+
+      return toCons(r)
+    }
+
+    if (f === "undefined") return undefined
+    if (f === "null") return null
+    if (f === "false") return false
+    if (f === "true") return true
 
     if (String(Number(f)) === f) return Number(f)
+
     if (f[0] === `"`) return f.substr(1, f.length - 2)
 
     return Symbol.for(f)
@@ -48,7 +65,8 @@ const read = s => {
     s
       .replace(/\r/g, "")
       .replace(/(;.*\n)/g, "\n")
-      .replace(/(\(|\)|\[|\])/g, " $1 ")
+      .replace(/,/g, " ")
+      .replace(/(\(|\)|\[|\]|\{|\})/g, " $1 ")
       .split(/\s/)
       .filter(x => !!x)
   )

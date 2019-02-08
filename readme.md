@@ -51,6 +51,8 @@ List represents the traditional singly linked list in a lisp using cons cells.
   - Need to run some expressions: they might be defining macros
 - add arrays []
 - add maps { "a" 1 "b" 2}
+- How to deal with undefined
+- Check missing namespaced symbols: js.Foobar/baz
 
 ### Reference
 

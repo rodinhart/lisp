@@ -1,7 +1,11 @@
 const { car, cdr, EMPTY, isCons } = require("./list.js")
 
 const prn = x => {
-  if (x === null) return "nil"
+  if (x === undefined || x === null) return String(x)
+
+  if (typeof x === "boolean" || typeof x === "number") return String(x)
+  if (typeof x === "symbol") return Symbol.keyFor(x)
+  if (typeof x === "string") return `"${x}"`
 
   if (isCons(x)) {
     const r = []
@@ -20,7 +24,7 @@ const prn = x => {
   }
 
   if (x instanceof Array) {
-    return `[${x.map(prn).join(",")}]`
+    return `[${x.map(prn).join(" ")}]`
   }
 
   if (x && typeof x.first === "function" && typeof x.rest === "function") {
@@ -37,20 +41,9 @@ const prn = x => {
     return "[procedure]"
   }
 
-  // if (x && typeof x === "object") {
-  //   return `{${Object.entries(x)
-  //     .filter(
-  //       ([key, val]) =>
-  //         !val || (typeof val !== "object" && typeof val !== "function")
-  //     )
-  //     .map(([key, val]) => `${key}: ${val}`)
-  //     .join(", ")}}`
-  // }
-
-  if (typeof x === "number") return String(x)
-  if (typeof x === "symbol") return Symbol.keyFor(x)
-
-  return `"${x}"`
+  return `{${Object.entries(x)
+    .map(([key, val]) => `"${key}" ${prn(val)}`)
+    .join(" ")}}`
 }
 
 module.exports = prn
