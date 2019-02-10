@@ -23,13 +23,13 @@ test("compile", () => {
 
   expect(compile(EMPTY)).toEqual(`env["EMPTY"]`)
   expect(compile(read("(lambda (x y) (f y x))"), { f: true })).toEqual(
-    "((x, y) => (f)(y, x))"
+    "((x,y) => (f)(y,x))"
   )
   expect(compile(read("(lambda x x)"), {})).toEqual("((...x) => x)")
   expect(compile(read("(lambda () 42)"), {})).toEqual("(() => 42)")
 
   expect(compile(read("(if x 42 (f 1 2))"), { x: true, f: true })).toEqual(
-    "((x) ? (42) : ((f)(1, 2)))"
+    "((x) ? (42) : ((f)(1,2)))"
   )
 
   expect(compile(read("(define x 42)"), {})).toEqual(`${ENV}["x"] = (42), "x"`)
@@ -39,6 +39,10 @@ test("compile", () => {
   )
 
   expect(compile(read("(f x y)"), { f: true, x: true, y: true })).toEqual(
-    "(f)(x, y)"
+    "(f)(x,y)"
   )
+
+  expect(
+    compile(read("(.prop obj x y)"), { obj: true, x: true, y: true })
+  ).toEqual(`obj["prop"](x,y)`)
 })

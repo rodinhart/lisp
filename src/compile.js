@@ -18,10 +18,7 @@ const compile = (x, env) => {
     const name = Symbol.keyFor(x)
     if (env[name]) return name // in scope
 
-    const gets = name
-      .replace(/\//g, ".")
-      .split(".")
-      .map(x => `["${x}"]`)
+    const gets = name.split("/").map(x => `["${x}"]`)
     return `${ENV}${gets.join("")}`
   }
 
@@ -54,7 +51,7 @@ const compile = (x, env) => {
 
     const body = compile(car(cdr(cdr(x))), newEnv)
 
-    let code = `((${args.join(", ")}) => ${body})`
+    let code = `((${args.join(",")}) => ${body})`
     if (op === Symbol.for("macro")) {
       code = `Object.assign(${code}, {macro:true})`
     }
@@ -154,10 +151,16 @@ const compile = (x, env) => {
     return "" //`Object.assign(${ENV}, require("${car(cdr(x))}"))`
   }
 
-  op = compile(op, env)
-  const params = map(x => compile(x, env), cdr(x))
+  if (typeof op === "symbol" && Symbol.keyFor(op)[0] === ".") {
+    const obj = compile(car(cdr(x)), env)
+    const args = map(x => compile(x, env), cdr(cdr(x)))
+    return `${obj}["${Symbol.keyFor(op).substr(1)}"](${args.join(",")})`
+  }
 
-  return `(${op})(${params.join(", ")})`
+  op = compile(op, env)
+  const args = map(x => compile(x, env), cdr(x))
+
+  return `(${op})(${args.join(",")})`
 }
 
 module.exports = compile
