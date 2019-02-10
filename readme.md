@@ -36,8 +36,8 @@ List represents the traditional singly linked list in a lisp using cons cells.
 
 ### TODO
 
+- have repl use lisp.js
 - add strings with spaces
-- add (.getContext canvas "2d")
 - unit testing of core.scm
 - fold and map if list is not list, e.g. (2 3 . 4)
 - test calling conventions
