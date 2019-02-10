@@ -36,6 +36,7 @@ List represents the traditional singly linked list in a lisp using cons cells.
 
 ### TODO
 
+- have compiler use ISeq, not List? So macro can return ISeq?
 - have repl use lisp.js
 - add strings with spaces
 - unit testing of core.scm
