@@ -1,6 +1,8 @@
 const compile = require("./compile.js")
 const { EMPTY } = require("./list.js")
+const primitive = require("./primitive.js")
 const read = require("./read.js")
+const sandbox = require("./sandbox.js")
 
 const ENV = "env" // see compile.js
 
@@ -33,6 +35,21 @@ test("compile", () => {
   )
 
   expect(compile(read("(define x 42)"), {})).toEqual(`${ENV}["x"] = (42), "x"`)
+
+  expect(
+    sandbox(
+      compile(
+        read(`
+    (loop (x 1 r 1)
+      (if (< x 5)
+        (do
+          (.log js/console x)
+          (recur (+ x 1) (* r x)))
+        r))`)
+      ),
+      { ...primitive, do: (...xs) => xs[xs.length - 1] }
+    )
+  ).toEqual("?")
 
   expect(compile(read(`(quote (1 (add 1 1)))`), { add: true })).toEqual(
     `${ENV}["cons"](1, ${ENV}["cons"](${ENV}["cons"](Symbol.for("add"), ${ENV}["cons"](1, ${ENV}["cons"](1, ${ENV}["EMPTY"]))), ${ENV}["EMPTY"]))`
