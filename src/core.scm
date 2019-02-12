@@ -1,6 +1,6 @@
 ;; Take a sequence of operands and put them in a list
 (define _list (lambda (x)
-               (if (isEmpty? x)
+               (if (empty? x)
                 ()
                 (cons (first x) (_list (rest x))))))
 (define list (lambda x (_list x)))
@@ -16,7 +16,7 @@
 
 ;; Destruct an parameter pattern to selector on a concrete argument
 (define destruct (lambda (pat arg)
-                  (if (isAtom pat)
+                  (if (atom? pat)
                    (cons arg ())
                    (if (= pat EMPTY)
                     ()
@@ -26,7 +26,7 @@
 
 ;; Flatten a parameter pattern
 (define flatten (lambda (pat)
-                 (if (isAtom pat)
+                 (if (atom? pat)
                   (cons pat ())
                   (if (= pat EMPTY)
                     ()

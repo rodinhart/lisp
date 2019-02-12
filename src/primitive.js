@@ -6,14 +6,14 @@ const isAtom = x => typeof x !== "object"
 
 module.exports = {
   first,
-  "isEmpty?": isEmpty,
+  "empty?": isEmpty,
   rest,
   Seq,
   EMPTY,
   car,
   cdr,
   cons: Cons,
-  isAtom,
+  "atom?": isAtom,
   object: (...xs) => {
     const r = {}
     for (let i = 0; i + 1 < xs.length; i += 2) {

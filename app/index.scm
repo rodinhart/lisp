@@ -8,7 +8,7 @@
 
 ;; returns ISeq, not List, needed for returning a form
 (defn map (f xs)
-  (if (isEmpty? xs)
+  (if (empty? xs)
     ()
     (cons (f (first xs)) (map f (rest xs)))
   )
@@ -17,7 +17,7 @@
 ;; When this is used from a loop, it fails?
 (defn do2 xs
   (loop (c xs r undefined)
-    (if (isEmpty? c)
+    (if (empty? c)
       r
       (recur (rest c) (first c)))))
 
