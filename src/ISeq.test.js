@@ -1,4 +1,4 @@
-const { first, isEmpty, ISeq, rest } = require("./ISeq.js")
+const { first, fold, isEmpty, map, ISeq, rest, Seq } = require("./ISeq.js")
 
 test("ISeq", () => {
   let t = ISeq([2, 3, 5])
@@ -13,4 +13,17 @@ test("ISeq", () => {
 
   t = rest(t)
   expect(isEmpty(t)).toEqual(true)
+})
+
+test("Seq", () => {
+  const t = Seq(() => 2, () => Seq(() => 3, () => Seq(() => 5, () => null)))
+  expect([...t]).toEqual([2, 3, 5])
+})
+
+test("fold", () => {
+  expect(fold((a, b) => a + b, 100, [2, 3, 5])).toEqual(110)
+})
+
+test("map", () => {
+  expect([...map(x => x + 1, [2, 3, 5])]).toEqual([3, 4, 6])
 })

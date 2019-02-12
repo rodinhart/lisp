@@ -1,4 +1,5 @@
-const { EMPTY, car, cdr, Cons, isCons, map } = require("./list.js")
+const { map } = require("./ISeq.js")
+const { EMPTY, car, cdr, Cons, isCons } = require("./list.js")
 
 // map2 that preserves referential equal if possible
 const map2 = f => xs => {

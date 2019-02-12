@@ -1,4 +1,5 @@
-const { EMPTY, car, cdr, isCons, map } = require("./list.js")
+const { EMPTY, car, cdr, isCons } = require("./list.js")
+const { map } = require("./ISeq.js")
 
 const ENV = "env"
 
@@ -49,7 +50,7 @@ const compile = (x, env) => {
       }
     }
 
-    const body = map(x => compile(x, newEnv), cdr(cdr(x))).join(",")
+    const body = [...map(x => compile(x, newEnv), cdr(cdr(x)))].join(",")
 
     let code = `((${args.join(",")}) => (${body}))`
     if (op === Symbol.for("macro")) {
@@ -96,7 +97,7 @@ const compile = (x, env) => {
       },
       { ...env, recur: true }
     )
-    const body = map(x => compile(x, locals), cdr(cdr(x)))
+    const body = [...map(x => compile(x, locals), cdr(cdr(x)))]
 
     return `(() => {
       ${lets}
@@ -151,12 +152,12 @@ const compile = (x, env) => {
 
   if (typeof op === "symbol" && Symbol.keyFor(op)[0] === ".") {
     const obj = compile(car(cdr(x)), env)
-    const args = map(x => compile(x, env), cdr(cdr(x)))
+    const args = [...map(x => compile(x, env), cdr(cdr(x)))]
     return `${obj}["${Symbol.keyFor(op).substr(1)}"](${args.join(",")})`
   }
 
   op = compile(op, env)
-  const args = map(x => compile(x, env), cdr(x))
+  const args = [...map(x => compile(x, env), cdr(x))]
 
   return `(${op})(${args.join(",")})`
 }

@@ -27,19 +27,37 @@ const Seq = (first, rest) => ({
   rest,
   toString: () => "[Seq]",
   [Symbol.iterator]: function*() {
-    yield first()
-    const c = rest()
-    if (!c) return
-    for (const val of c) {
-      yield val
+    let seq = Seq(first, rest)
+    while (seq !== null) {
+      yield seq.first()
+      seq = seq.rest()
     }
   }
 })
 
+// fold :: (r -> a -> r) -> r -> ISeq a -> r
+const fold = (f, init, xs) => {
+  let r = init
+  let c = ISeq(xs)
+  let cnt = 0
+  while (!isEmpty(c) && ++cnt < 100) {
+    r = f(r, first(c))
+    c = rest(c)
+  }
+
+  return r
+}
+
+// map :: (a -> b) -> ISeq a -> ISeq b
+const map = (f, xs) =>
+  isEmpty(xs) ? null : Seq(() => f(first(xs)), () => map(f, rest(xs)))
+
 module.exports = {
   first,
+  fold,
   isEmpty,
   ISeq,
+  map,
   rest,
   Seq
 }
