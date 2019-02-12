@@ -1,4 +1,5 @@
 (import core ../src/core.scm)
+(import util ./util.js)
 
 (define canvas (.getElementById js/document "canvas"))
 (define g (.getContext canvas "2d"))
@@ -50,14 +51,14 @@
                   (if (> n 0) ; need and
                     (if (< (+ c d) 4)
                       (recur (+ (- c d) rx) (+ (* 2 a b) ry) (- n 1))
-                      (set! g "strokeStyle" (.join ["#" (toHex n) (toHex n) (toHex n)] "")))
-                    (set! g "strokeStyle" (.join ["#" (toHex n) (toHex n) (toHex n)] "")))
+                      (set! g "strokeStyle" (util/toArc n)))
+                    (set! g "strokeStyle" (util/toArc n)))
                 ) (* a a) (* b b))
             )) (+ x (* q sx)) (+ y (* q sy)))
             (doto g
               ;(set! "strokeStyle" (.join ["#" "00" (toHex sx) (toHex sy)] ""))
               (.beginPath)
-              (.rect sx sy 1 1)
+              (.rect (+ 0.5 sx) (+ 0.5 sy) 1 1)
               (.stroke))
             (recur (+ sy 1)))
           null))

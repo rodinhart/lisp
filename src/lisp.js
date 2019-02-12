@@ -16,6 +16,7 @@ const lisp = (imports, source) => {
         (r, exp) => {
           const expanded = macroexpand(exp, env)
           const code = compile(expanded, {})
+
           return sandbox(code, env)
         },
         null,

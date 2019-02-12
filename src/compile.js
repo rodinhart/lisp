@@ -88,17 +88,15 @@ const compile = (x, env) => {
       .join("\n")
     const args = names.map(arg => `_${arg}`).join(", ")
     const assigns = names.map((name, i) => `${name} = _${name}`).join("\n")
-    const body = compile(
-      car(cdr(cdr(x))),
-      names.reduce(
-        (env, name) => {
-          env[name] = true
+    const locals = names.reduce(
+      (env, name) => {
+        env[name] = true
 
-          return env
-        },
-        { ...env, recur: true }
-      )
+        return env
+      },
+      { ...env, recur: true }
     )
+    const body = map(x => compile(x, locals), cdr(cdr(x)))
 
     return `(() => {
       ${lets}
@@ -109,7 +107,7 @@ const compile = (x, env) => {
       }
       let __RESULT__
       do {
-        __RESULT__ = (${body})
+        __RESULT__ = (${body.join(",")})
       } while (__RESULT__ === "__RECUR__")
 
       return __RESULT__

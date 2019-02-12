@@ -1,7 +1,9 @@
+const fs = require("fs")
 const readline = require("readline")
 
 const compile = require("./compile.js")
 const { thread } = require("./lang.js")
+const lisp = require("./lisp.js")
 const macroexpand = require("./macroexpand.js")
 const primitive = require("./primitive.js")
 const prn = require("./print.js")
@@ -13,12 +15,22 @@ const rl = readline.createInterface({
   output: process.stdout
 })
 
-const env = { ...primitive }
+const env = {
+  ...primitive,
+  ...lisp({ ...primitive }, fs.readFileSync("./src/core.scm"))
+}
 
-const _ = () => {
+const _ = pre => {
   console.log()
   rl.question("    ", r => {
-    thread(r, [
+    try {
+      read(pre + r)
+    } catch (e) {
+      _(pre + r)
+      return
+    }
+
+    thread(pre + r, [
       read,
       exp => {
         const expanded = macroexpand(exp, env)
@@ -31,8 +43,8 @@ const _ = () => {
       console.log
     ])
 
-    _()
+    _("")
   })
 }
 
-_()
+_("")
