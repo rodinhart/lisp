@@ -49,9 +49,9 @@ const compile = (x, env) => {
       }
     }
 
-    const body = compile(car(cdr(cdr(x))), newEnv)
+    const body = map(x => compile(x, newEnv), cdr(cdr(x))).join(",")
 
-    let code = `((${args.join(",")}) => ${body})`
+    let code = `((${args.join(",")}) => (${body}))`
     if (op === Symbol.for("macro")) {
       code = `Object.assign(${code}, {macro:true})`
     }
