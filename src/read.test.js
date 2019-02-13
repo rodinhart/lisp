@@ -8,8 +8,8 @@ test("read", () => {
   expect(read("false")).toEqual(false)
   expect(read("true")).toEqual(true)
   expect(read("3")).toEqual(3)
-  expect(read("hello")).toEqual(Symbol.for("hello"))
   expect(read(`"hello"`)).toEqual("hello")
+  expect(read("hello")).toEqual(Symbol.for("hello"))
 
   expect(read("()")).toEqual(EMPTY)
   expect(String(read("(1 2)"))).toEqual("(1 . (2 . ()))")

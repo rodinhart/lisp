@@ -19,7 +19,7 @@ const lisp = (imports, source) => {
 
           return sandbox(code, env)
         },
-        null,
+        undefined,
         x
       ),
     _ => env

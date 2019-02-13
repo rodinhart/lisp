@@ -29,7 +29,7 @@ const prn = x => {
 
   if (x && typeof x.first === "function" && typeof x.rest === "function") {
     const r = []
-    while (x) {
+    while (x !== EMPTY) {
       r.push(prn(x.first()))
       x = x.rest()
     }

@@ -6,12 +6,13 @@ const seqArray = (xs, i) =>
         first: () => xs[i],
         rest: () => seqArray(xs, i + 1)
       }
-    : null
+    : EMPTY
 
 const ISeq = x => {
-  if (x === null || x === EMPTY) return null
+  if (x === EMPTY) return EMPTY
 
-  if (typeof x.first === "function" && typeof x.rest === "function") return x
+  if (x && typeof x.first === "function" && typeof x.rest === "function")
+    return x
 
   if (x instanceof Array) return seqArray(x, 0)
 
@@ -20,7 +21,7 @@ const ISeq = x => {
 
 const first = x => ISeq(x).first()
 const rest = x => ISeq(x).rest()
-const isEmpty = x => ISeq(x) === null
+const isEmpty = x => ISeq(x) === EMPTY
 
 const Seq = (first, rest) => ({
   first,
@@ -28,7 +29,7 @@ const Seq = (first, rest) => ({
   toString: () => "[Seq]",
   [Symbol.iterator]: function*() {
     let seq = Seq(first, rest)
-    while (seq !== null) {
+    while (seq !== EMPTY) {
       yield seq.first()
       seq = seq.rest()
     }
@@ -39,8 +40,7 @@ const Seq = (first, rest) => ({
 const fold = (f, init, xs) => {
   let r = init
   let c = ISeq(xs)
-  let cnt = 0
-  while (!isEmpty(c) && ++cnt < 100) {
+  while (!isEmpty(c)) {
     r = f(r, first(c))
     c = rest(c)
   }
@@ -50,7 +50,7 @@ const fold = (f, init, xs) => {
 
 // map :: (a -> b) -> ISeq a -> ISeq b
 const map = (f, xs) =>
-  isEmpty(xs) ? null : Seq(() => f(first(xs)), () => map(f, rest(xs)))
+  isEmpty(xs) ? EMPTY : Seq(() => f(first(xs)), () => map(f, rest(xs)))
 
 module.exports = {
   first,

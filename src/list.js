@@ -1,5 +1,6 @@
 const EMPTY = {
   _type: "Cons",
+  [Symbol.iterator]: function*() {},
   toString: () => "()"
 }
 

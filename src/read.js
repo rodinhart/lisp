@@ -7,6 +7,16 @@ const read = s => {
   const _ = x => {
     if (!x.length) return null
     const f = x.shift()
+
+    if (f === "undefined") return undefined
+    if (f === "null") return null
+    if (f === "false") return false
+    if (f === "true") return true
+
+    if (String(Number(f)) === f) return Number(f)
+
+    if (f[0] === `"`) return f.substr(1, f.length - 2)
+
     if (f === "(") {
       const r = [null, EMPTY]
       let c = r
@@ -48,15 +58,6 @@ const read = s => {
 
       return toCons(r)
     }
-
-    if (f === "undefined") return undefined
-    if (f === "null") return null
-    if (f === "false") return false
-    if (f === "true") return true
-
-    if (String(Number(f)) === f) return Number(f)
-
-    if (f[0] === `"`) return f.substr(1, f.length - 2)
 
     return Symbol.for(f)
   }

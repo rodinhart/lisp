@@ -7,20 +7,21 @@
 
 
 ;; Concatenate two lists
-(define concat (lambda (xs ys)
+;; TODO concat two sequences to List
+(define _concat (lambda (xs ys)
                 (if (= xs ())
                  ys
                  (cons
                   (car xs)
-                  (concat (cdr xs) ys)))))
+                  (_concat (cdr xs) ys)))))
 
 ;; Destruct an parameter pattern to selector on a concrete argument
 (define destruct (lambda (pat arg)
                   (if (atom? pat)
                    (cons arg ())
-                   (if (= pat EMPTY)
+                   (if (= pat ())
                     ()
-                    (concat
+                    (_concat
                      (destruct (car pat) (list (quote first) arg))
                      (destruct (cdr pat) (list (quote rest) arg)))))))
 
@@ -28,58 +29,63 @@
 (define flatten (lambda (pat)
                  (if (atom? pat)
                   (cons pat ())
-                  (if (= pat EMPTY)
+                  (if (= pat ())
                     ()
-                    (concat
+                    (_concat
                       (flatten (car pat))
                       (flatten (cdr pat)))))))
 
 ;; Function definition with destructuring
-(define fn (macro (params body)
+(define fn (macro (params . body)
             (list
               (quote lambda)
               (quote t)
               (cons
-                (list
-                  (quote lambda)
-                  (flatten params)
-                  body)      
+                (_concat
+                  (list
+                   (quote lambda)
+                   (flatten params))
+                  (_list body))
                 (destruct params (quote t))))))
 
 ;; Convenience macro for defining named functions
 ;; (defn f (x y . z) z)
-(define defn (macro (name params body)
+(define defn (macro (name params . body)
               (list
                 (quote define)
                 name
-                (list
-                  (quote fn)
-                  params
-                  body))))
+                (_concat
+                  (list
+                    (quote fn)
+                    params)
+                  (_list body)))))
 
 ;; Convenience macro for defining macros
-(define defmacro (macro (name params body)
+(define defmacro (macro (name params . body)
                   (list
                     (quote define)
                     name
-                    (list
-                      (quote macro)
-                      params
-                      body))))
+                    (_concat
+                      (list
+                        (quote macro)
+                        params)
+                      (_list body)))))
                       
-;; test
+;; take n from sequence
 (defn take (n xs)
  (if (> n 0)
   (seq (first xs) (take (- n 1) (rest xs)))
-  null))
+  ()))
 
+;; zip two sequences using function
+;; make into variadic map
 (defn zip (f xs ys)
- (seq (f (first xs) (first ys)) (zip f (rest xs) (rest ys))))
+  (if (empty? xs)
+    ()
+    (if (empty? ys)
+      ()
+      (seq (f (first xs) (first ys)) (zip f (rest xs) (rest ys))))))
 
 (define fib (seq 1 (seq 1 (zip + fib (rest fib)))))
 
 (define first-ten (take 10 fib))
-
-;;(export first-ten)
-
-;; ---

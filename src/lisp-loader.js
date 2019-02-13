@@ -1,5 +1,6 @@
+const { fold } = require("./ISeq.js")
 const { thread } = require("./lang.js")
-const { car, cdr, fold, isCons } = require("./list.js")
+const { car, cdr, isCons } = require("./list.js")
 const read = require("./read.js")
 
 module.exports = source => {

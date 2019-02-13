@@ -25,7 +25,7 @@
   (cons
     (quote do)
     (map
-      (fn (x) (concat
+      (fn (x) (_concat
         (list (car x) obj)
         (cdr x)))
       xs)))
@@ -61,6 +61,6 @@
               (.rect (+ 0.5 sx) (+ 0.5 sy) 1 1)
               (.stroke))
             (recur (+ sy 1)))
-          null))
+          ()))
       (recur (+ sx 1)))
-    null))
+    ()))

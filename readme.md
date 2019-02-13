@@ -36,6 +36,7 @@ List represents the traditional singly linked list in a lisp using cons cells.
 
 ### TODO
 
+- doto to return obj
 - optional second clause in (if) resulting in undefined
 - body in (loop)
 - (let)
