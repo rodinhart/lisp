@@ -5,7 +5,7 @@ const read = require("./read.js")
 
 const { _concat, destruct, fn, flatten, list, take, zip } = lisp(
   {},
-  fs.readFileSync(require.resolve("./core.scm"))
+  fs.readFileSync(require.resolve("./core.clj"))
 )
 
 test("list", () => {

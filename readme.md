@@ -36,20 +36,12 @@ List represents the traditional singly linked list in a lisp using cons cells.
 
 ### TODO
 
-- back to .clj
 - (let)
 - add strings with spaces
-- fold and map if list is not list, e.g. (2 3 . 4)
 - define proper interfaces (like ISeq) using Symbols on prototypes
-- Throw error on unknown symbol
-- Rename env in compile(exp,env) to bound? scope?
 - How to compile ahead of time without running costly expressions?
   - Need to run some expressions: they might be defining macros
-- add arrays []
-- add maps { "a" 1 "b" 2}
-- How to deal with undefined
-- Check missing namespaced symbols: js.Foobar/baz
-- does define rollup?
+- Throw error on unknown symbol
 - backquote
 
 ### Reference

@@ -17,7 +17,7 @@ const rl = readline.createInterface({
 
 const env = {
   ...primitive,
-  ...lisp({ ...primitive }, fs.readFileSync("./src/core.scm"))
+  ...lisp({ ...primitive }, fs.readFileSync("./src/core.clj"))
 }
 
 const _ = pre => {

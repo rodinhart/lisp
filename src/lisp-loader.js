@@ -27,7 +27,7 @@ module.exports = source => {
         x
       ),
     imports => `module.exports = require("../src/lisp.js")(
-      Object.assign({}, require("../src/core.scm"), ${imports.join(", ")}),
+      Object.assign({}, require("../src/core.clj"), ${imports.join(", ")}),
       \`${source}\`
     )`
   ])

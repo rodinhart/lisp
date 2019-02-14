@@ -1,4 +1,4 @@
-(import core ../src/core.scm)
+(import core ../src/core.clj)
 (import util ./util.js)
 
 (define canvas (.getElementById js/document "canvas"))
