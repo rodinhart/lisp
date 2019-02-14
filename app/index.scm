@@ -6,14 +6,6 @@
 
 (defn identity (x) x)
 
-;; returns ISeq, not List, needed for returning a form
-(defn map (f xs)
-  (if (empty? xs)
-    ()
-    (cons (f (first xs)) (map f (rest xs)))
-  )
-)
-
 ;; When this is used from a loop, it fails?
 (defn do2 xs
   (loop (c xs r undefined)
@@ -21,19 +13,10 @@
       r
       (recur (rest c) (first c)))))
 
-(defmacro doto (obj . xs)
-  (cons
-    (quote do)
-    (map
-      (fn (x) (_concat
-        (list (car x) obj)
-        (cdr x)))
-      xs)))
-
 (defn toHex (x)
   (.substr (.join ["0" (.toString x 16)] "") -2))
 
-(define N 512)
+(define N 256)
 (define x -2)
 (define y -2)
 (define s 4)

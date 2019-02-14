@@ -36,7 +36,7 @@ List represents the traditional singly linked list in a lisp using cons cells.
 
 ### TODO
 
-- doto to return obj
+- back to .clj
 - optional second clause in (if) resulting in undefined
 - body in (loop)
 - (let)
@@ -58,6 +58,7 @@ List represents the traditional singly linked list in a lisp using cons cells.
 - add maps { "a" 1 "b" 2}
 - How to deal with undefined
 - Check missing namespaced symbols: js.Foobar/baz
+- does define rollup?
 
 ### Reference
 

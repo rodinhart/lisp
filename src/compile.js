@@ -157,7 +157,17 @@ const compile = (x, env) => {
   }
 
   op = compile(op, env)
-  const args = [...map(x => compile(x, env), cdr(x))]
+  let args = []
+  let cur = cdr(x)
+  while (cur !== EMPTY) {
+    if (isCons(cur)) {
+      args.push(compile(car(cur), env))
+      cur = cdr(cur)
+    } else {
+      args.push(`...(${compile(cur, env)})`)
+      cur = EMPTY
+    }
+  }
 
   return `(${op})(${args.join(",")})`
 }

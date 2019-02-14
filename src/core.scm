@@ -70,7 +70,36 @@
                         (quote macro)
                         params)
                       (_list body)))))
-                      
+
+(defn apply (f args) (f . args))
+
+(defn map (f xs)
+  (if (empty? xs)
+    ()
+    (seq (f (first xs)) (map f (rest xs)))
+  )
+)
+
+;; (doto obj (f x)) -> ((lambda (o) (f o x) o) obj)
+(defmacro doto (obj . xs)
+  (list
+    (_concat
+      (_concat
+        (list
+          (quote lambda)
+          (list (quote o)))
+        (apply list (map
+          (lambda (x) (_concat
+            (list (car x) (quote o))
+            (cdr x)))
+          xs)))
+      (list (quote o)))
+    obj))
+
+(.log js/console (prn (doto {}
+  (set! "a" 2)
+  (set! "b" 3))))
+
 ;; take n from sequence
 (defn take (n xs)
  (if (> n 0)
