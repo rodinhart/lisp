@@ -63,7 +63,10 @@ const compile = (x, env) => {
   if (op === Symbol.for("if")) {
     const condition = compile(car(cdr(x)), env)
     const consequent = compile(car(cdr(cdr(x))), env)
-    const alternative = compile(car(cdr(cdr(cdr(x)))), env)
+    const alternative =
+      cdr(cdr(cdr(x))) !== EMPTY
+        ? compile(car(cdr(cdr(cdr(x)))), env)
+        : "undefined"
     return `((${condition}) ? (${consequent}) : (${alternative}))`
   }
 

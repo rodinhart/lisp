@@ -37,18 +37,9 @@ List represents the traditional singly linked list in a lisp using cons cells.
 ### TODO
 
 - back to .clj
-- optional second clause in (if) resulting in undefined
-- body in (loop)
 - (let)
-- have compiler use ISeq, not List? So macro can return ISeq?
-- have repl use lisp.js
 - add strings with spaces
-- unit testing of core.scm
 - fold and map if list is not list, e.g. (2 3 . 4)
-- test calling conventions
-  - call lisp function: f(1, 2, 3)
-  - call js function (apply f lst)
-- support arrays and maps
 - define proper interfaces (like ISeq) using Symbols on prototypes
 - Throw error on unknown symbol
 - Rename env in compile(exp,env) to bound? scope?
@@ -59,6 +50,7 @@ List represents the traditional singly linked list in a lisp using cons cells.
 - How to deal with undefined
 - Check missing namespaced symbols: js.Foobar/baz
 - does define rollup?
+- backquote
 
 ### Reference
 

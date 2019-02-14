@@ -73,6 +73,32 @@
 
 (defn apply (f args) (f . args))
 
+;; (and x y) -> ((lambda (z) (if z y z)) x)
+(defmacro and (x y)
+  (list
+    (list
+      (quote lambda)
+      (list (quote z))
+      (list
+        (quote if)
+        (quote z)
+        y
+        (quote z)))
+    x))
+
+;; (or x y) -> ((lambda (z) (if z z y)) x)
+(defmacro or (x y)
+  (list
+    (list
+      (quote lambda)
+      (list (quote z))
+      (list
+        (quote if)
+        (quote z)
+        (quote z)
+        y))
+    x))
+
 (defn map (f xs)
   (if (empty? xs)
     ()
@@ -95,10 +121,6 @@
           xs)))
       (list (quote o)))
     obj))
-
-(.log js/console (prn (doto {}
-  (set! "a" 2)
-  (set! "b" 3))))
 
 ;; take n from sequence
 (defn take (n xs)
