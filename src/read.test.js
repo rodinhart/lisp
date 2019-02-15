@@ -19,4 +19,8 @@ test("read", () => {
   expect(JSON.stringify(read(`[1 2 "a" "b"]`))).toEqual(`[1,2,"a","b"]`)
 
   expect(prn(read("{a 1 b true}"))).toEqual("(object a 1 b true)")
+
+  expect(prn(read("`x"))).toEqual("(syntax x)")
+  expect(prn(read("`(x y z)"))).toEqual("(syntax (x y z))")
+  expect(prn(read("`(x y ~z)"))).toEqual("(syntax (x y (unquote z)))")
 })

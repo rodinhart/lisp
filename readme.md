@@ -6,6 +6,10 @@ Various lisp implementations.
 
 Implementation in JavaScript that compiles to JavaScript and then evals the resulting code. Goal is maximum interoperability with JavaScript.
 
+### Booleans
+
+`true` and `false` map directly to `true` and `false` in JavaScript.
+
 ### Calling convention
 
 ```scheme
@@ -14,17 +18,9 @@ Implementation in JavaScript that compiles to JavaScript and then evals the resu
 (define list (lambda x x)); (...x) => x Note that this returns an Iseq
 ```
 
-### Types
+### Number
 
-- undefined
-- null
-- boolean
-- number
-- string
-- Symbol
-- List
-- Array
-- Map
+Just like JavaScript, `number` is the only numeric type known. Note there is no numeric tower.
 
 ### seq
 
@@ -37,6 +33,10 @@ To build an IIterable `seq` can be used, and this results in a lazy sequence.
 (first (rest ones)) ; 1
 ```
 
+### String
+
+`string` maps directly to `string` in JavaScript.
+
 ### List
 
 List represents the traditional singly linked list in a lisp using cons cells.
@@ -45,6 +45,14 @@ List represents the traditional singly linked list in a lisp using cons cells.
 (define lst (cons 2 (cons 3 ())))
 (define pair (cons 2 3))
 ```
+
+### Null
+
+`null` maps directly to `null` in JavaScript. Note that `nil` does not exist.
+
+### Undefined
+
+`undefined` maps directly to `undefined` in JavaScript.
 
 ### TODO
 
@@ -58,6 +66,9 @@ List represents the traditional singly linked list in a lisp using cons cells.
 - use [] anywhere?
 - documentation
 - make (.log js/console . xs) work
+- ({} "hello") and ("hello" {})? IFn?
+- macroexpand
+- ISeq for objects
 
 ### Reference
 

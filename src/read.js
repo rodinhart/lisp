@@ -59,6 +59,14 @@ const read = s => {
       return toCons(r)
     }
 
+    if (f === "`") {
+      return Cons(Symbol.for("syntax"), Cons(_(x), EMPTY))
+    }
+
+    if (f === "~") {
+      return Cons(Symbol.for("unquote"), Cons(_(x), EMPTY))
+    }
+
     return Symbol.for(f)
   }
 
@@ -67,7 +75,7 @@ const read = s => {
       .replace(/\r/g, "")
       .replace(/(;.*\n)/g, "\n")
       .replace(/,/g, " ")
-      .replace(/(\(|\)|\[|\]|\{|\})/g, " $1 ")
+      .replace(/(\(|\)|\[|\]|\{|\}|\`|~)/g, " $1 ")
       .split(/\s/)
       .filter(x => !!x)
   )
