@@ -1,6 +1,8 @@
 const compile = require("./compile.js")
+const { thread } = require("./lang.js")
 const { EMPTY } = require("./list.js")
 const primitive = require("./primitive.js")
+const print = require("./print.js")
 const read = require("./read.js")
 const sandbox = require("./sandbox.js")
 
@@ -60,6 +62,15 @@ test("compile", () => {
   expect(compile(read(`(quote (1 (add 1 1)))`), { add: true })).toEqual(
     `${ENV}["cons"](1, ${ENV}["cons"](${ENV}["cons"](Symbol.for("add"), ${ENV}["cons"](1, ${ENV}["cons"](1, ${ENV}["EMPTY"]))), ${ENV}["EMPTY"]))`
   )
+
+  expect(
+    thread(`(syntax (x y (unquote z)))`, [
+      read,
+      x => compile(x, {}),
+      x => sandbox(x, { ...primitive, z: 42 }),
+      print
+    ])
+  ).toEqual("(x y 42)")
 
   expect(compile(read("(f x y)"), { f: true, x: true, y: true })).toEqual(
     "(f)(x,y)"

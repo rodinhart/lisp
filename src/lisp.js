@@ -6,6 +6,7 @@ const primitive = require("./primitive.js")
 const read = require("./read.js")
 const sandbox = require("./sandbox.js")
 
+// this "repl" return the env, not the result
 const lisp = (imports, source) => {
   const env = { ...primitive, ...imports }
 

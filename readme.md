@@ -14,11 +14,23 @@ Implementation in JavaScript that compiles to JavaScript and then evals the resu
 (define list (lambda x x)); (...x) => x Note that this returns an Iseq
 ```
 
+### Types
+
+- undefined
+- null
+- boolean
+- number
+- string
+- Symbol
+- List
+- Array
+- Map
+
 ### seq
 
 To build an IIterable `seq` can be used, and this results in a lazy sequence.
 
-```scheme
+```clj
 (define ones (seq 1 ones))
 
 (first ones) ; 1
@@ -29,7 +41,7 @@ To build an IIterable `seq` can be used, and this results in a lazy sequence.
 
 List represents the traditional singly linked list in a lisp using cons cells.
 
-```scheme
+```clj
 (define lst (cons 2 (cons 3 ())))
 (define pair (cons 2 3))
 ```
@@ -43,10 +55,13 @@ List represents the traditional singly linked list in a lisp using cons cells.
   - Need to run some expressions: they might be defining macros
 - Throw error on unknown symbol
 - backquote
+- use [] anywhere?
+- documentation
+- make (.log js/console . xs) work
 
 ### Reference
 
-```scheme
+```clj
 (define x 10)
 
 (export foobar)

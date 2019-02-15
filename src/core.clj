@@ -1,3 +1,5 @@
+(define log (lambda (x) (.log js/console x)))
+
 ;; Take a sequence of operands and put them in a list
 (define _list (lambda (x)
                (if (empty? x)
@@ -88,16 +90,7 @@
 
 ;; (or x y) -> ((lambda (z) (if z z y)) x)
 (defmacro or (x y)
-  (list
-    (list
-      (quote lambda)
-      (list (quote z))
-      (list
-        (quote if)
-        (quote z)
-        (quote z)
-        y))
-    x))
+  (syntax ((lambda (z) (if z z (unquote y))) (unquote x))))
 
 (defn map (f xs)
   (if (empty? xs)
