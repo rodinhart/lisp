@@ -72,6 +72,24 @@ test("compile", () => {
     ])
   ).toEqual("(x y 42)")
 
+  expect(
+    thread("`[a 1 ~b 3]", [
+      read,
+      x => compile(x, {}),
+      x => sandbox(x, { ...primitive, a: 10, b: 2 }),
+      print
+    ])
+  ).toEqual("[a 1 2 3]")
+
+  expect(
+    thread("`{a 1 ~b 3}", [
+      read,
+      x => compile(x, {}),
+      x => sandbox(x, { ...primitive, a: 10, b: 2 }),
+      print
+    ])
+  ).toEqual("(object a 1 2 3)")
+
   expect(compile(read("(f x y)"), { f: true, x: true, y: true })).toEqual(
     "(f)(x,y)"
   )

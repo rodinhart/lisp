@@ -144,6 +144,10 @@ const compile = (x, env) => {
         return `${ENV}["cons"](${_(car(x))},${_(cdr(x))})`
       }
 
+      if (x instanceof Array) {
+        return `[${x.map(_).join(",")}]`
+      }
+
       return JSON.stringify(x)
     }
 

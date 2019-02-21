@@ -3,13 +3,19 @@ const lisp = require("./lisp.js")
 const prn = require("./print.js")
 const read = require("./read.js")
 
-const { _concat, destruct, fn, flatten, list, take, zip } = lisp(
+const { _concat, destruct, fn, flatten, let: lett, list, take, zip } = lisp(
   {},
   fs.readFileSync(require.resolve("./core.clj"))
 )
 
 test("list", () => {
   expect(String(list(2, 3, 5))).toEqual("(2 . (3 . (5 . ())))")
+})
+
+test("let", () => {
+  expect(prn(lett([Symbol.for("x"), 2, Symbol.for("y"), 3], 5, 7))).toEqual(
+    "((lambda (x y) 5 7) 2 3)"
+  )
 })
 
 test("_concat", () => {
