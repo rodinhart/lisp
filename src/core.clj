@@ -1,4 +1,5 @@
 (define log (lambda (x) (.log js/console x)))
+(define println (lambda (x) (.log js/console (prn x))))
 
 ;; Take a sequence of operands and put them in a list
 (define _list (lambda (x)
@@ -7,6 +8,26 @@
                 (cons (first x) (_list (rest x))))))
 (define list (lambda x (_list x)))
 
+;; (let [x 28 y 14] (println x) (println y) (+ x y))
+;; ((lambda (x y)
+;;   (println x)
+;;   (println y)
+;;   (+ x y))
+;; 28 14)
+(define _let1 (lambda (binds)
+  (if (empty? binds)
+    ()
+    (cons (first binds) (_let1 (rest (rest binds)))))))
+
+(define _let2 (lambda (binds)
+  (if (empty? binds)
+    ()
+    (cons (first (rest binds)) (_let2 (rest (rest binds)))))))
+
+(define let (macro (binds . body)
+  (cons
+    (cons `lambda (cons (_let1 binds) (list . body)))
+    (_let2 binds))))
 
 ;; Concatenate two lists
 ;; TODO concat two sequences to List

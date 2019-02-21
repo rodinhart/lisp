@@ -28,7 +28,7 @@ module.exports = source => {
       ),
     imports => `module.exports = require("../src/lisp.js")(
       Object.assign({}, require("../src/core.clj"), ${imports.join(", ")}),
-      \`${source}\`
+      \`${source.replace(/`/g, "\\`")}\`
     )`
   ])
 }
