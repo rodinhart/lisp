@@ -45,8 +45,8 @@
                    (if (= pat ())
                     ()
                     (_concat
-                     (destruct (car pat) (list (quote first) arg))
-                     (destruct (cdr pat) (list (quote rest) arg)))))))
+                     (destruct (car pat) (list (syntax first) arg))
+                     (destruct (cdr pat) (list (syntax rest) arg)))))))
 
 ;; Flatten a parameter pattern
 (define flatten (lambda (pat)
@@ -61,36 +61,36 @@
 ;; Function definition with destructuring
 (define fn (macro (params . body)
             (list
-              (quote lambda)
-              (quote t)
+              (syntax lambda)
+              (syntax t)
               (cons
                 (_concat
                   (list
-                   (quote lambda)
+                   (syntax lambda)
                    (flatten params))
                   (_list body))
-                (destruct params (quote t))))))
+                (destruct params (syntax t))))))
 
 ;; Convenience macro for defining named functions
 ;; (defn f (x y . z) z)
 (define defn (macro (name params . body)
               (list
-                (quote define)
+                (syntax define)
                 name
                 (_concat
                   (list
-                    (quote fn)
+                    (syntax fn)
                     params)
                   (_list body)))))
 
 ;; Convenience macro for defining macros
 (define defmacro (macro (name params . body)
                   (list
-                    (quote define)
+                    (syntax define)
                     name
                     (_concat
                       (list
-                        (quote macro)
+                        (syntax macro)
                         params)
                       (_list body)))))
 
@@ -100,13 +100,13 @@
 (defmacro and (x y)
   (list
     (list
-      (quote lambda)
-      (list (quote z))
+      (syntax lambda)
+      (list (syntax z))
       (list
-        (quote if)
-        (quote z)
+        (syntax if)
+        (syntax z)
         y
-        (quote z)))
+        (syntax z)))
     x))
 
 ;; (or x y) -> ((lambda (z) (if z z y)) x)
@@ -126,14 +126,14 @@
     (_concat
       (_concat
         (list
-          (quote lambda)
-          (list (quote o)))
+          (syntax lambda)
+          (list (syntax o)))
         (apply list (map
           (lambda (x) (_concat
-            (list (car x) (quote o))
+            (list (car x) (syntax o))
             (cdr x)))
           xs)))
-      (list (quote o)))
+      (list (syntax o)))
     obj))
 
 ;; take n from sequence

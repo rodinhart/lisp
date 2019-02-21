@@ -251,13 +251,11 @@ So both are valid.
 
 ## TODO
 
-- remove quote/'
 - add strings with spaces
 - define proper interfaces (like ISeq) using Symbols on prototypes
 - How to compile ahead of time without running costly expressions?
   - Need to run some expressions: they might be defining macros
 - Throw error on unknown symbol
-- backquote
 - use [] anywhere?
 - documentation
 - make (.log js/console . xs) work

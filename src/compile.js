@@ -118,19 +118,6 @@ const compile = (x, env) => {
     })()`
   }
 
-  if (op === Symbol.for("quote")) {
-    const _ = x =>
-      !isCons(x)
-        ? typeof x === "symbol"
-          ? `Symbol.for("${Symbol.keyFor(x)}")`
-          : JSON.stringify(x)
-        : x === EMPTY
-        ? `${ENV}["EMPTY"]`
-        : `${ENV}["cons"](${_(car(x))}, ${_(cdr(x))})`
-
-    return _(car(cdr(x)))
-  }
-
   if (op === Symbol.for("syntax")) {
     const _ = x => {
       if (typeof x === "symbol") return `Symbol.for("${Symbol.keyFor(x)}")`

@@ -59,10 +59,6 @@ test("compile", () => {
     )
   ).toEqual(24)
 
-  expect(compile(read(`(quote (1 (add 1 1)))`), { add: true })).toEqual(
-    `${ENV}["cons"](1, ${ENV}["cons"](${ENV}["cons"](Symbol.for("add"), ${ENV}["cons"](1, ${ENV}["cons"](1, ${ENV}["EMPTY"]))), ${ENV}["EMPTY"]))`
-  )
-
   expect(
     thread(`(syntax (x y (unquote z)))`, [
       read,
