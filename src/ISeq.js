@@ -4,17 +4,27 @@ const seqArray = (xs, i) =>
   i < xs.length
     ? {
         first: () => xs[i],
-        rest: () => seqArray(xs, i + 1)
+        rest: () => seqArray(xs, i + 1),
+        [Symbol.iterator]: function*() {
+          for (let j = i; j < xs.length; j += 1) {
+            yield xs[j]
+          }
+        }
       }
     : EMPTY
 
 const ISeq = x => {
   if (x === EMPTY) return EMPTY
 
-  if (x && typeof x.first === "function" && typeof x.rest === "function")
+  if (x && typeof x.first === "function" && typeof x.rest === "function") {
     return x
+  }
 
   if (x instanceof Array) return seqArray(x, 0)
+
+  if (typeof x === "object" && x.constructor === Object) {
+    return seqArray(Object.entries(x), 0)
+  }
 
   throw new Error(`Failed to get ISeq for ${x}`)
 }

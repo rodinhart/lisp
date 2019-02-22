@@ -3,23 +3,13 @@ const lisp = require("./lisp.js")
 const prn = require("./print.js")
 const read = require("./read.js")
 
-const { _concat, destruct, fn, flatten, let: lett, list, take, zip } = lisp(
+const { concat, destruct, fn, flatten, let: lett, list, take, zip } = lisp(
   {},
   fs.readFileSync(require.resolve("./core.clj"))
 )
 
-test("list", () => {
-  expect(String(list(2, 3, 5))).toEqual("(2 . (3 . (5 . ())))")
-})
-
-test("let", () => {
-  expect(prn(lett([Symbol.for("x"), 2, Symbol.for("y"), 3], 5, 7))).toEqual(
-    "((lambda (x y) 5 7) 2 3)"
-  )
-})
-
-test("_concat", () => {
-  expect(prn(_concat(list(1, 2), list(3, 4)))).toEqual("(1 2 3 4)")
+test("concat", () => {
+  expect(prn(concat(list(1, 2), { a: 3 }, [4, 5]))).toEqual(`(1 2 ["a" 3] 4 5)`)
 })
 
 test("destruct", () => {
@@ -38,6 +28,16 @@ test("fn", () => {
   expect(prn(fn(read("((x y) s)"), read("(+ x y)"), read("s")))).toEqual(
     "(lambda t ((lambda (x y s) (+ x y) s) (first (first t)) (first (rest (first t))) (first (rest t))))"
   )
+})
+
+test("let", () => {
+  expect(prn(lett([Symbol.for("x"), 2, Symbol.for("y"), 3], 5, 7))).toEqual(
+    "((lambda (x y) 5 7) 2 3)"
+  )
+})
+
+test("list", () => {
+  expect(String(list(2, 3, 5))).toEqual("(2 . (3 . (5 . ())))")
 })
 
 test("take", () => {

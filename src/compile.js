@@ -177,7 +177,7 @@ const compile = (x, env) => {
       args.push(compile(car(cur), env))
       cur = cdr(cur)
     } else {
-      args.push(`...(${compile(cur, env)})`)
+      args.push(`...${ENV}.ISeq(${compile(cur, env)})`)
       cur = EMPTY
     }
   }

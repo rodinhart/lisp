@@ -1,3 +1,5 @@
+(define apply (lambda (f args) (f . args)))
+
 (define log (lambda (x) (.log js/console x)))
 (define println (lambda (x) (.log js/console (prn x))))
 
@@ -14,6 +16,7 @@
 ;;   (println y)
 ;;   (+ x y))
 ;; 28 14)
+;; TODO? Hide _let1 and _let2 using let :)
 (define _let1 (lambda (binds)
   (if (empty? binds)
     ()
@@ -29,14 +32,20 @@
     (cons `lambda (cons (_let1 binds) (list . body)))
     (_let2 binds))))
 
-;; Concatenate two lists
-;; TODO concat two sequences to List
-(define _concat (lambda (xs ys)
-                (if (= xs ())
-                 ys
-                 (cons
-                  (car xs)
-                  (_concat (cdr xs) ys)))))
+;; concat sequences
+(define concat (let [
+  f (lambda (f xs x)
+    (if (empty? x)
+      (if (empty? xs)
+        ()
+        (f f (rest xs) (first xs)))
+      (seq (first x) (f f xs (rest x)))))
+  ]
+  (lambda xs
+    (f f xs ()))))
+
+;; concat sequences to a list
+(define concat_list (lambda xs (apply list (concat . xs))))
 
 ;; Destruct an parameter pattern to selector on a concrete argument
 (define destruct (lambda (pat arg)
@@ -44,7 +53,7 @@
                    (cons arg ())
                    (if (= pat ())
                     ()
-                    (_concat
+                    (concat_list
                      (destruct (car pat) (list (syntax first) arg))
                      (destruct (cdr pat) (list (syntax rest) arg)))))))
 
@@ -54,22 +63,21 @@
                   (cons pat ())
                   (if (= pat ())
                     ()
-                    (_concat
+                    (concat_list
                       (flatten (car pat))
                       (flatten (cdr pat)))))))
 
 ;; Function definition with destructuring
+;; (fn (x y) x y) -> (lambda t ((lambda (x y) x y) (first t) (first (rest t))))
 (define fn (macro (params . body)
             (list
-              (syntax lambda)
-              (syntax t)
+              `lambda
+              `t
               (cons
-                (_concat
-                  (list
-                   (syntax lambda)
-                   (flatten params))
-                  (_list body))
-                (destruct params (syntax t))))))
+                (concat_list
+                  `(lambda ~(flatten params))
+                  body)
+                (destruct params `t)))))
 
 ;; Convenience macro for defining named functions
 ;; (defn f (x y . z) z)
@@ -77,24 +85,22 @@
               (list
                 (syntax define)
                 name
-                (_concat
+                (concat_list
                   (list
                     (syntax fn)
                     params)
-                  (_list body)))))
+                  body))))
 
 ;; Convenience macro for defining macros
 (define defmacro (macro (name params . body)
                   (list
                     (syntax define)
                     name
-                    (_concat
+                    (apply list (concat
                       (list
                         (syntax macro)
                         params)
-                      (_list body)))))
-
-(defn apply (f args) (f . args))
+                      (_list body))))))
 
 ;; (and x y) -> ((lambda (z) (if z y z)) x)
 (defmacro and (x y)
@@ -123,17 +129,17 @@
 ;; (doto obj (f x)) -> ((lambda (o) (f o x) o) obj)
 (defmacro doto (obj . xs)
   (list
-    (_concat
-      (_concat
+    (apply list (concat
+      (apply list (concat
         (list
           (syntax lambda)
           (list (syntax o)))
         (apply list (map
-          (lambda (x) (_concat
+          (lambda (x) (apply list (concat
             (list (car x) (syntax o))
-            (cdr x)))
-          xs)))
-      (list (syntax o)))
+            (cdr x))))
+          xs))))
+      (list (syntax o))))
     obj))
 
 ;; take n from sequence

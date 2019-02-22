@@ -1,5 +1,5 @@
 const { EMPTY, car, cdr, Cons } = require("./list.js")
-const { first, isEmpty, rest, Seq } = require("./ISeq.js")
+const { first, isEmpty, ISeq, rest, Seq } = require("./ISeq.js")
 const prn = require("./print.js")
 
 const isAtom = x => typeof x !== "object"
@@ -7,6 +7,7 @@ const isAtom = x => typeof x !== "object"
 module.exports = {
   first,
   "empty?": isEmpty,
+  ISeq,
   rest,
   Seq,
   EMPTY,
@@ -36,7 +37,7 @@ module.exports = {
 
   js: {
     console: console,
-    document: document,
+    // document: document,
     Math: Math
   },
 

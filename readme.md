@@ -251,6 +251,8 @@ So both are valid.
 
 ## TODO
 
+- cond
+- define to return symbol, not string
 - add strings with spaces
 - define proper interfaces (like ISeq) using Symbols on prototypes
 - How to compile ahead of time without running costly expressions?
@@ -262,4 +264,5 @@ So both are valid.
 - ({} "hello") and ("hello" {})? IFn?
 - macroexpand
 - ISeq for objects
-- handle backquote in lisp loader
+- test seqArray.iterator
+- arity?

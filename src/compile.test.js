@@ -90,8 +90,13 @@ test("compile", () => {
     "(f)(x,y)"
   )
   expect(
-    compile(read("(f x y . z)"), { f: true, x: true, y: true, z: true })
-  ).toEqual("(f)(x,y,...(z))")
+    compile(read("(f x y . z)"), {
+      f: true,
+      x: true,
+      y: true,
+      z: true
+    })
+  ).toEqual("(f)(x,y,...env.ISeq(z))")
 
   expect(
     compile(read("(.prop obj x y)"), { obj: true, x: true, y: true })
