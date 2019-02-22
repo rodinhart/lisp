@@ -37,7 +37,7 @@ module.exports = {
 
   js: {
     console: console,
-    // document: document,
+    document: document,
     Math: Math
   },
 

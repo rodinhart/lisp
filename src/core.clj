@@ -80,33 +80,30 @@
                 (destruct params `t)))))
 
 ;; Convenience macro for defining named functions
-;; (defn f (x y . z) z)
+;; (defn name params expr1 expr2) -> (define name (fn params expr1 expr2))
 (define defn (macro (name params . body)
-              (list
-                (syntax define)
-                name
-                (concat_list
-                  (list
-                    (syntax fn)
-                    params)
-                  body))))
+  (list
+    `define
+    name
+    (concat_list
+      (list `fn params)
+      body))))
 
 ;; Convenience macro for defining macros
 (define defmacro (macro (name params . body)
-                  (list
-                    (syntax define)
-                    name
-                    (apply list (concat
-                      (list
-                        (syntax macro)
-                        params)
-                      (_list body))))))
+  (list
+    `define
+    name
+    (concat_list
+      (list `macro params)
+      body))))
 
 ;; (and x y) -> ((lambda (z) (if z y z)) x)
 (defmacro and (x y)
+  
   (list
     (list
-      (syntax lambda)
+      `lambda
       (list (syntax z))
       (list
         (syntax if)
@@ -114,6 +111,8 @@
         y
         (syntax z)))
     x))
+
+(println (and (do (println "hoi") 2) 3))
 
 ;; (or x y) -> ((lambda (z) (if z z y)) x)
 (defmacro or (x y)
