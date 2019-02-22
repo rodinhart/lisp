@@ -45,6 +45,8 @@
     (f f xs ()))))
 
 ;; concat sequences to a list
+;; maybe make a specialist version for performance, and so
+;; concat can join it's friends map, take etc?
 (define concat_list (lambda xs (apply list (concat . xs))))
 
 ;; Destruct an parameter pattern to selector on a concrete argument
@@ -100,23 +102,13 @@
 
 ;; (and x y) -> ((lambda (z) (if z y z)) x)
 (defmacro and (x y)
-  
-  (list
-    (list
-      `lambda
-      (list (syntax z))
-      (list
-        (syntax if)
-        (syntax z)
-        y
-        (syntax z)))
-    x))
-
-(println (and (do (println "hoi") 2) 3))
+  `(let [z ~x]
+    (if z ~y z)))
 
 ;; (or x y) -> ((lambda (z) (if z z y)) x)
 (defmacro or (x y)
-  (syntax ((lambda (z) (if z z (unquote y))) (unquote x))))
+  `(let [z ~x]
+    (if z z ~y)))
 
 (defn map (f xs)
   (if (empty? xs)
@@ -124,22 +116,6 @@
     (seq (f (first xs)) (map f (rest xs)))
   )
 )
-
-;; (doto obj (f x)) -> ((lambda (o) (f o x) o) obj)
-(defmacro doto (obj . xs)
-  (list
-    (apply list (concat
-      (apply list (concat
-        (list
-          (syntax lambda)
-          (list (syntax o)))
-        (apply list (map
-          (lambda (x) (apply list (concat
-            (list (car x) (syntax o))
-            (cdr x))))
-          xs))))
-      (list (syntax o))))
-    obj))
 
 ;; take n from sequence
 (defn take (n xs)
@@ -159,3 +135,13 @@
 (define fib (seq 1 (seq 1 (zip + fib (rest fib)))))
 
 (define first-ten (take 10 fib))
+
+;; (doto obj (f x)) -> ((lambda (o) (f o x) o) obj)
+;; (doto obj (f x)) -> (let [o obj] (f o x) o)
+(defmacro doto (obj . xs)
+  (concat_list
+    (list `let [`o obj])
+    (map
+      (lambda (x) (concat_list (list (car x) `o) (cdr x)))
+      xs)
+    `(o)))

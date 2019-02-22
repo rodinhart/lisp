@@ -251,6 +251,8 @@ So both are valid.
 
 ## TODO
 
+- expandmacro
+- macros expanded before time, i.e. `(let [o ~obj]) will expand macro first
 - cond
 - define to return symbol, not string
 - add strings with spaces
