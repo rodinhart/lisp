@@ -252,6 +252,7 @@ So both are valid.
 ## TODO
 
 - expandmacro
+- print syntax/unquote as `/~ (rename them?)
 - macros expanded before time, i.e. `(let [o ~obj]) will expand macro first
 - cond
 - define to return symbol, not string
