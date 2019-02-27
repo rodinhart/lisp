@@ -25,9 +25,9 @@ function Back(state) {
   this.state = state
 }
 
-const append = (stack, name, buffer, char) => State(name, buffer + char)
+const app = (stack, name, buffer, char) => State(name, buffer + char)
 
-const endOfFile = (stack, name, buffer, char) => {
+const eof = (stack, name, buffer, char) => {
   throw new Error(`Unexpected end of file in ${name}`)
 }
 
@@ -50,227 +50,148 @@ const getSymbol = x => {
   }
 }
 
-const getList = x => toCons(x[1])
+const skp = (stack, name, buffer, char) => State(name, buffer)
 
-const ignore = (stack, name, buffer, char) => State(name, buffer)
-
-const returnTerm = tx => (stack, name, buffer, char) => stack.pop()(tx(buffer))
-
-const setupArray = (stack, name, buffer, char) => {
-  stack.push(result => {
-    buffer.push(result)
-
-    return State("array", buffer)
-  })
-
-  return char
-}
-
-const setupCons = (stack, name, buffer, char) => {
-  stack.push(result => {
-    buffer[0][1] = result
-    buffer[0] = null // prevent (a . b b).
-
-    return State("cons", buffer)
-  })
-
-  return char
-}
-
-const setupDone = (stack, name, buffer, char) => {
-  stack.push(result => State("DONE", result))
-
-  return char
-}
-
-const setupList = (stack, name, buffer, char) => {
-  stack.push(result => {
-    buffer[0][1] = [result, EMPTY]
-    buffer[0] = buffer[0][1]
-
-    return State("list", buffer)
-  })
-
-  return char
-}
-
-const startArray = char => State("array", [])
-
-const startNumber = char => State("number", char)
-
-const startList = char => {
-  const t = [null, EMPTY]
-  t[0] = t
-
-  return State("list", t)
-}
-
-const startString = char => State("string", "")
-
-const startSymbol = char => State("symbol", char)
-
-const unknownChar = (stack, name, buffer, char) => {
+const rej = (stack, name, buffer, char) => {
   throw new Error(`Unexpected character '${char}' in ${name}`)
 }
 
+const push = (() => {
+  const _ = {
+    array: (stack, name, buffer, char) => {
+      stack.push(result => {
+        buffer.push(result)
+
+        return State("array", buffer)
+      })
+
+      return char
+    },
+    cons: (stack, name, buffer, char) => {
+      stack.push(result => {
+        buffer[0][1] = result
+        buffer[0] = null // prevent (a . b b).
+
+        return State("cons", buffer)
+      })
+
+      return char
+    },
+    expr: (stack, name, buffer, char) => {
+      stack.push(result => State("DONE", result))
+
+      return char
+    },
+    list: (stack, name, buffer, char) => {
+      stack.push(result => {
+        buffer[0][1] = [result, EMPTY]
+        buffer[0] = buffer[0][1]
+
+        return State("list", buffer)
+      })
+
+      return char
+    },
+    object: (stack, name, buffer, char) => {
+      stack.push(result => {
+        buffer[0][1] = [result, EMPTY]
+        buffer[0] = buffer[0][1]
+
+        return State("object", buffer)
+      })
+
+      return char
+    }
+  }
+
+  return (stack, name, buffer, char) => _[name](stack, name, buffer, char)
+})()
+
+const arr = pipe(
+  push,
+  char => State("array", [])
+)
+
+const cns = (stack, name, buffer, char) => State("cons", buffer)
+
+const num = pipe(
+  push,
+  char => State("number", char)
+)
+
+const obj = pipe(
+  push,
+  char => {
+    const t = [null, [Symbol.for("object"), EMPTY]]
+    t[0] = t[1]
+
+    return State("object", t)
+  }
+)
+
+const lst = pipe(
+  push,
+  char => {
+    const t = [null, EMPTY]
+    t[0] = t
+
+    return State("list", t)
+  }
+)
+
+const str = pipe(
+  push,
+  char => State("string", "")
+)
+
+const sym = pipe(
+  push,
+  char => State("symbol", char)
+)
+
+const ret = (stack, name, buffer, char) =>
+  stack.pop()(
+    (() => {
+      switch (name) {
+        case "number":
+          return Number(buffer)
+
+        case "symbol":
+          return getSymbol(buffer)
+
+        case "string":
+          return buffer
+
+        case "list":
+        case "cons":
+        case "object":
+          return toCons(buffer[1])
+
+        case "array":
+          return buffer
+
+        default:
+          throw new Error(`No ret for ${name}`)
+      }
+    })()
+  )
+
+const end = pipe(
+  ret,
+  Back
+)
+
+// prettier-ignore
 const chart = {
-  _: [/EOF/, /[\s,]/, /\(/, /\)/, /\./, /\[/, /\]/, /[0-9]/, /"/, /./],
-  expr: [
-    endOfFile,
-    ignore,
-    pipe(
-      setupDone,
-      startList
-    ),
-    unknownChar,
-    unknownChar,
-    pipe(
-      setupDone,
-      startArray
-    ),
-    unknownChar,
-    pipe(
-      setupDone,
-      startNumber
-    ),
-    pipe(
-      setupDone,
-      startString
-    ),
-    pipe(
-      setupDone,
-      startSymbol
-    )
-  ],
-  number: [
-    returnTerm(Number),
-    returnTerm(Number),
-    unknownChar,
-    pipe(
-      returnTerm(Number),
-      Back
-    ),
-    unknownChar,
-    unknownChar,
-    pipe(
-      returnTerm(Number),
-      Back
-    ),
-    append,
-    unknownChar,
-    unknownChar
-  ],
-  symbol: [
-    returnTerm(getSymbol),
-    returnTerm(getSymbol),
-    unknownChar,
-    pipe(
-      returnTerm(getSymbol),
-      Back
-    ),
-    append,
-    unknownChar,
-    pipe(
-      returnTerm(getSymbol),
-      Back
-    ),
-    append,
-    unknownChar,
-    append
-  ],
-  string: [
-    endOfFile,
-    append,
-    append,
-    append,
-    append,
-    append,
-    append,
-    append,
-    returnTerm(x => x),
-    append
-  ],
-  list: [
-    endOfFile,
-    ignore,
-    pipe(
-      setupList,
-      startList
-    ),
-    returnTerm(getList),
-    (stack, name, buffer, char) => State("cons", buffer),
-    pipe(
-      setupList,
-      startArray
-    ),
-    unknownChar,
-    pipe(
-      setupList,
-      startNumber
-    ),
-    pipe(
-      setupList,
-      startString
-    ),
-    pipe(
-      setupList,
-      startSymbol
-    )
-  ],
-  cons: [
-    endOfFile,
-    ignore,
-    pipe(
-      setupCons,
-      startList
-    ),
-    returnTerm(getList),
-    unknownChar,
-    pipe(
-      setupCons,
-      startArray
-    ),
-    unknownChar,
-    pipe(
-      setupCons,
-      startNumber
-    ),
-    pipe(
-      setupCons,
-      startString
-    ),
-    pipe(
-      setupCons,
-      startSymbol
-    )
-  ],
-  array: [
-    endOfFile,
-    ignore,
-    pipe(
-      setupArray,
-      startList
-    ),
-    unknownChar,
-    unknownChar,
-    pipe(
-      setupArray,
-      startArray
-    ),
-    returnTerm(x => x),
-    pipe(
-      setupArray,
-      startNumber
-    ),
-    pipe(
-      setupArray,
-      startString
-    ),
-    pipe(
-      setupArray,
-      startSymbol
-    )
-  ]
+  _:    [ /EOF/, /[\s,]/, /\(/, /\)/, /\./, /\[/, /\]/, /\{/, /\}/, /[0-9]/, /"/, /./ ],
+  expr: [  eof,   skp,     lst,  rej,  rej,  arr,  rej,  obj,  rej,  num,     str, sym],
+  number: [ret,   ret,     rej,  end,  rej,  rej,  end,  rej,  end,  app,     rej, rej],
+  symbol: [ret,   ret,     rej,  end,  app,  rej,  end,  rej,  end,  app,     rej, app],
+  string: [eof,   app,     app,  app,  app,  app,  app,  app,  app,  app,     ret, app],
+  list: [  eof,   skp,     lst,  ret,  cns,  arr,  rej,  obj,  rej,  num,     str, sym],
+  cons: [  eof,   skp,     lst,  ret,  rej,  arr,  rej,  obj,  rej,  num,     str, sym],
+  array: [ eof,   skp,     lst,  rej,  rej,  arr,  ret,  obj,  rej,  num,     str, sym],
+  object: [eof,   skp,     lst,  rej,  rej,  arr,  rej,  obj,  ret,  num,     str, sym]
 }
 
 // TODO return errors as type, don't throw
