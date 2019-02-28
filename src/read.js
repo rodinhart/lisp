@@ -1,4 +1,4 @@
-const { Cons, EMPTY } = require("./list.js")
+const { EMPTY, car, cdr, Cons, isCons } = require("./list.js")
 
 // needed to convert array tuples to proper Cons
 const toCons = x => (x instanceof Array ? Cons(x[0], toCons(x[1])) : x)
@@ -31,6 +31,30 @@ const eof = (stack, name, buffer, char) => {
   throw new Error(`Unexpected end of file in ${name}`)
 }
 
+const getQuoted = x => {
+  if (!x || typeof x !== "object") {
+    return toCons([Symbol.for("quote"), [x, EMPTY]])
+  }
+
+  if (isCons(x)) {
+    if (x === EMPTY) return x
+    if (car(x) === Symbol.for("unquote")) return car(cdr(x))
+
+    const r = [null, [Symbol.for("list"), EMPTY]]
+    r[0] = r[1]
+
+    let c = x
+    while (c !== EMPTY) {
+      r[0][1] = [getQuoted(car(c)), EMPTY]
+      r[0] = r[0][1]
+
+      c = cdr(c)
+    }
+
+    return toCons(r[1])
+  }
+}
+
 const getSymbol = x => {
   switch (x) {
     case "undefined":
@@ -49,6 +73,8 @@ const getSymbol = x => {
       return Symbol.for(x)
   }
 }
+
+const getUnquoted = x => toCons([Symbol.for("unquote"), [x, EMPTY]])
 
 const skp = (stack, name, buffer, char) => State(name, buffer)
 
@@ -101,6 +127,17 @@ const push = (() => {
       })
 
       return char
+    },
+    syntax: (stack, name, buffer, char) => {
+      stack.push(result => ret(stack, "syntax", result))
+
+      return char
+    },
+
+    unquote: (stack, name, buffer, char) => {
+      stack.push(result => ret(stack, "unquote", result))
+
+      return char
     }
   }
 
@@ -149,7 +186,17 @@ const sym = pipe(
   char => State("symbol", char)
 )
 
-const ret = (stack, name, buffer, char) =>
+const syn = pipe(
+  push,
+  char => State("syntax")
+)
+
+const unq = pipe(
+  push,
+  char => State("unquote")
+)
+
+const ret = (stack, name, buffer) =>
   stack.pop()(
     (() => {
       switch (name) {
@@ -170,6 +217,12 @@ const ret = (stack, name, buffer, char) =>
         case "array":
           return buffer
 
+        case "syntax":
+          return getQuoted(buffer)
+
+        case "unquote":
+          return getUnquoted(buffer)
+
         default:
           throw new Error(`No ret for ${name}`)
       }
@@ -183,15 +236,17 @@ const end = pipe(
 
 // prettier-ignore
 const chart = {
-  _:    [ /EOF/, /[\s,]/, /\(/, /\)/, /\./, /\[/, /\]/, /\{/, /\}/, /[0-9]/, /"/, /./ ],
-  expr: [  eof,   skp,     lst,  rej,  rej,  arr,  rej,  obj,  rej,  num,     str, sym],
-  number: [ret,   ret,     rej,  end,  rej,  rej,  end,  rej,  end,  app,     rej, rej],
-  symbol: [ret,   ret,     rej,  end,  app,  rej,  end,  rej,  end,  app,     rej, app],
-  string: [eof,   app,     app,  app,  app,  app,  app,  app,  app,  app,     ret, app],
-  list: [  eof,   skp,     lst,  ret,  cns,  arr,  rej,  obj,  rej,  num,     str, sym],
-  cons: [  eof,   skp,     lst,  ret,  rej,  arr,  rej,  obj,  rej,  num,     str, sym],
-  array: [ eof,   skp,     lst,  rej,  rej,  arr,  ret,  obj,  rej,  num,     str, sym],
-  object: [eof,   skp,     lst,  rej,  rej,  arr,  rej,  obj,  ret,  num,     str, sym]
+  _:    [  /EOF/, /[\s,]/, /\(/, /\)/, /\./, /\[/, /\]/, /\{/, /\}/, /`/, /~/, /[0-9]/, /"/, /./ ],
+  expr: [   eof,   skp,     lst,  rej,  rej,  arr,  rej,  obj,  rej, syn, rej,  num,     str, sym],
+  list: [   eof,   skp,     lst,  ret,  cns,  arr,  rej,  obj,  rej, syn, unq,  num,     str, sym],
+  cons: [   eof,   skp,     lst,  ret,  rej,  arr,  rej,  obj,  rej, syn, unq,  num,     str, sym],
+  array: [  eof,   skp,     lst,  rej,  rej,  arr,  ret,  obj,  rej, syn, unq,  num,     str, sym],
+  object: [ eof,   skp,     lst,  rej,  rej,  arr,  rej,  obj,  ret, syn, unq,  num,     str, sym],
+  syntax: [ eof,   rej,     lst,  rej,  rej,  arr,  rej,  obj,  rej, syn, unq,  num,     str, sym],
+  unquote: [eof,   rej,     lst,  rej,  rej,  arr,  rej,  obj,  rej, syn, rej,  num,     str, sym],
+  number: [ ret,   ret,     rej,  end,  app,  rej,  end,  rej,  end, rej, rej,  app,     rej, rej], // 3.14.15 would pass
+  string: [ eof,   app,     app,  app,  app,  app,  app,  app,  app, app, app,  app,     ret, app],
+  symbol: [ ret,   ret,     rej,  end,  app,  rej,  end,  rej,  end, rej, unq,  app,     rej, app],
 }
 
 // TODO return errors as type, don't throw

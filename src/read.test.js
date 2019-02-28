@@ -7,7 +7,8 @@ test("read", () => {
   expect(read("null")).toEqual(null)
   expect(read("false")).toEqual(false)
   expect(read("true")).toEqual(true)
-  expect(read("3")).toEqual(3)
+  expect(read("42")).toEqual(42)
+  expect(read("3.1415")).toEqual(3.1415)
   expect(read(`"hello"`)).toEqual("hello")
   expect(read("hello")).toEqual(Symbol.for("hello"))
 
@@ -20,7 +21,9 @@ test("read", () => {
 
   expect(prn(read("{a 1 b true}"))).toEqual("(object a 1 b true)")
 
-  expect(prn(read("`x"))).toEqual("(syntax x)")
-  expect(prn(read("`(x y z)"))).toEqual("(syntax (x y z))")
-  expect(prn(read("`(x y ~z)"))).toEqual("(syntax (x y (unquote z)))")
+  expect(prn(read("`x"))).toEqual("(quote x)")
+  expect(prn(read("`()"))).toEqual("()")
+  expect(prn(read("`(x y z)"))).toEqual("(list (quote x) (quote y) (quote z))")
+  expect(prn(read("`(x y ~z)"))).toEqual("(list (quote x) (quote y) z)")
+  // expect(prn(read("`((x y) ~z)"))).toEqual("(list (quote (x y)) z)")
 })
