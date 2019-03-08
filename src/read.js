@@ -53,6 +53,10 @@ const getQuoted = x => {
 
     return toCons(r[1])
   }
+
+  if (x instanceof Array) {
+    return x.map(getQuoted)
+  }
 }
 
 const getSymbol = x => {
@@ -151,6 +155,12 @@ const arr = pipe(
 
 const cns = (stack, name, buffer, char) => State("cons", buffer)
 
+const com = (stack, name, buffer, char) => {
+  stack.push(result => State(name, buffer))
+
+  return State("comm")
+}
+
 const num = pipe(
   push,
   char => State("number", char)
@@ -200,6 +210,9 @@ const ret = (stack, name, buffer) =>
   stack.pop()(
     (() => {
       switch (name) {
+        case "comm":
+          return "buffer"
+
         case "number":
           return Number(buffer)
 
@@ -236,17 +249,18 @@ const end = pipe(
 
 // prettier-ignore
 const chart = {
-  _:    [  /EOF/, /[\s,]/, /\(/, /\)/, /\./, /\[/, /\]/, /\{/, /\}/, /`/, /~/, /[0-9]/, /"/, /./ ],
-  expr: [   eof,   skp,     lst,  rej,  rej,  arr,  rej,  obj,  rej, syn, rej,  num,     str, sym],
-  list: [   eof,   skp,     lst,  ret,  cns,  arr,  rej,  obj,  rej, syn, unq,  num,     str, sym],
-  cons: [   eof,   skp,     lst,  ret,  rej,  arr,  rej,  obj,  rej, syn, unq,  num,     str, sym],
-  array: [  eof,   skp,     lst,  rej,  rej,  arr,  ret,  obj,  rej, syn, unq,  num,     str, sym],
-  object: [ eof,   skp,     lst,  rej,  rej,  arr,  rej,  obj,  ret, syn, unq,  num,     str, sym],
-  syntax: [ eof,   rej,     lst,  rej,  rej,  arr,  rej,  obj,  rej, syn, unq,  num,     str, sym],
-  unquote: [eof,   rej,     lst,  rej,  rej,  arr,  rej,  obj,  rej, syn, rej,  num,     str, sym],
-  number: [ ret,   ret,     rej,  end,  app,  rej,  end,  rej,  end, rej, rej,  app,     rej, rej], // 3.14.15 would pass
-  string: [ eof,   app,     app,  app,  app,  app,  app,  app,  app, app, app,  app,     ret, app],
-  symbol: [ ret,   ret,     rej,  end,  app,  rej,  end,  rej,  end, rej, unq,  app,     rej, app],
+  _:    [  /EOF/, /^;/, /^\n/, /^[\s,]/, /^\(/, /^\)/, /^\. /, /^\[/, /^\]/, /^\{/, /^\}/, /^`/, /^~/, /^[0-9]/, /^"/, /^./ ],
+  expr: [   eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  rej,  num,      str,  sym],
+  comm: [   eof,   skp,  ret,   skp,      skp,   skp,   skp,    skp,   skp,   skp,   skp,   skp,  skp,  skp,      skp,  skp],
+  list: [   eof,   com,  skp,   skp,      lst,   ret,   cns,    arr,   rej,   obj,   rej,   syn,  unq,  num,      str,  sym],
+  cons: [   eof,   com,  skp,   skp,      lst,   ret,   sym,    arr,   rej,   obj,   rej,   syn,  unq,  num,      str,  sym],
+  array: [  eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   ret,   obj,   rej,   syn,  unq,  num,      str,  sym],
+  object: [ eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   rej,   obj,   ret,   syn,  unq,  num,      str,  sym],
+  syntax: [ eof,   rej,  rej,   rej,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  unq,  num,      str,  sym],
+  unquote: [eof,   rej,  rej,   rej,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  rej,  num,      str,  sym],
+  number: [ ret,   ret,  ret,   ret,      rej,   end,   app,    rej,   end,   rej,   end,   rej,  rej,  app,      rej,  app], // 3.14.15 would pass
+  string: [ eof,   app,  app,   app,      app,   app,   app,    app,   app,   app,   app,   app,  app,  app,      ret,  app],
+  symbol: [ ret,   ret,  ret,   ret,      rej,   end,   app,    rej,   end,   rej,   end,   rej,  unq,  app,      rej,  app],
 }
 
 // TODO return errors as type, don't throw
@@ -259,7 +273,7 @@ const read = s => {
     const row = chart[state.name]
     let j
     for (j = 0; j < row.length; j += 1) {
-      if (char.match(chart._[j])) {
+      if ((char + (s[i + 1] || "")).match(chart._[j])) {
         state = row[j](stack, state.name, state.buffer, char)
         break
       }

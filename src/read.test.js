@@ -3,6 +3,8 @@ const prn = require("./print.js")
 const read = require("./read.js")
 
 test("read", () => {
+  expect(read("; ignore me\n42")).toEqual(42)
+
   expect(read("undefined")).toEqual(undefined)
   expect(read("null")).toEqual(null)
   expect(read("false")).toEqual(false)
@@ -26,4 +28,11 @@ test("read", () => {
   expect(prn(read("`(x y z)"))).toEqual("(list (quote x) (quote y) (quote z))")
   expect(prn(read("`(x y ~z)"))).toEqual("(list (quote x) (quote y) z)")
   // expect(prn(read("`((x y) ~z)"))).toEqual("(list (quote (x y)) z)")
+
+  expect(prn(read(`(.log js/console "Hello world")`))).toEqual(
+    '(.log js/console "Hello world")'
+  )
+  expect(prn(read(`(import core ../core.clj)`))).toEqual(
+    "(import core ../core.clj)"
+  )
 })
