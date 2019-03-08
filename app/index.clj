@@ -34,17 +34,16 @@
                   (if (> n 0) ; need and
                     (if (< (+ c d) 4)
                       (recur (+ (- c d) rx) (+ (* 2 a b) ry) (- n 1))
-                      (set! g "strokeStyle" (util/toArc n)))
-                    (set! g "strokeStyle" (util/toArc n)))
+                      (set! g "fillStyle" (util/toArc n)))
+                    (set! g "fillStyle" (util/toArc n)))
                 ) (* a a) (* b b))
             )) (+ x (* q sx)) (+ y (* q sy)))
             (doto g
-              ;(set! "strokeStyle" (.join ["#" "00" (toHex sx) (toHex sy)] ""))
+              ; (set! "fillStyle" (.join ["#" "00" (toHex sx) (toHex sy)] ""))
               (.beginPath)
               (.rect (+ 0.5 sx) (+ 0.5 sy) 1 1)
-              (.stroke))
+              (.fill))
             (recur (+ sy 1)))
           ()))
       (recur (+ sx 1)))
     ()))
-

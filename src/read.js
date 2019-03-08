@@ -249,18 +249,18 @@ const end = pipe(
 
 // prettier-ignore
 const chart = {
-  _:    [  /EOF/, /^;/, /^\n/, /^[\s,]/, /^\(/, /^\)/, /^\. /, /^\[/, /^\]/, /^\{/, /^\}/, /^`/, /^~/, /^[0-9]/, /^"/, /^./ ],
-  expr: [   eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  rej,  num,      str,  sym],
-  comm: [   eof,   skp,  ret,   skp,      skp,   skp,   skp,    skp,   skp,   skp,   skp,   skp,  skp,  skp,      skp,  skp],
-  list: [   eof,   com,  skp,   skp,      lst,   ret,   cns,    arr,   rej,   obj,   rej,   syn,  unq,  num,      str,  sym],
-  cons: [   eof,   com,  skp,   skp,      lst,   ret,   sym,    arr,   rej,   obj,   rej,   syn,  unq,  num,      str,  sym],
-  array: [  eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   ret,   obj,   rej,   syn,  unq,  num,      str,  sym],
-  object: [ eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   rej,   obj,   ret,   syn,  unq,  num,      str,  sym],
-  syntax: [ eof,   rej,  rej,   rej,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  unq,  num,      str,  sym],
-  unquote: [eof,   rej,  rej,   rej,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  rej,  num,      str,  sym],
-  number: [ ret,   ret,  ret,   ret,      rej,   end,   app,    rej,   end,   rej,   end,   rej,  rej,  app,      rej,  app], // 3.14.15 would pass
-  string: [ eof,   app,  app,   app,      app,   app,   app,    app,   app,   app,   app,   app,  app,  app,      ret,  app],
-  symbol: [ ret,   ret,  ret,   ret,      rej,   end,   app,    rej,   end,   rej,   end,   rej,  unq,  app,      rej,  app],
+  _:    [  /EOF/, /^;/, /^\n/, /^[\s,]/, /^\(/, /^\)/, /^\. /, /^\[/, /^\]/, /^\{/, /^\}/, /^`/, /^~/, /^([0-9].|[-][0-9])/, /^"/, /^./ ],
+  expr: [   eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  rej,  num,                 str,  sym],
+  comm: [   eof,   skp,  ret,   skp,      skp,   skp,   skp,    skp,   skp,   skp,   skp,   skp,  skp,  skp,                 skp,  skp],
+  list: [   eof,   com,  skp,   skp,      lst,   ret,   cns,    arr,   rej,   obj,   rej,   syn,  unq,  num,                 str,  sym],
+  cons: [   eof,   com,  skp,   skp,      lst,   ret,   sym,    arr,   rej,   obj,   rej,   syn,  unq,  num,                 str,  sym],
+  array: [  eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   ret,   obj,   rej,   syn,  unq,  num,                 str,  sym],
+  object: [ eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   rej,   obj,   ret,   syn,  unq,  num,                 str,  sym],
+  syntax: [ eof,   rej,  rej,   rej,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  unq,  num,                 str,  sym],
+  unquote: [eof,   rej,  rej,   rej,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  rej,  num,                 str,  sym],
+  number: [ ret,   ret,  ret,   ret,      rej,   end,   app,    rej,   end,   rej,   end,   rej,  rej,  app,                 rej,  app], // 3.14.15 would pass
+  string: [ eof,   app,  app,   app,      app,   app,   app,    app,   app,   app,   app,   app,  app,  app,                 ret,  app],
+  symbol: [ ret,   ret,  ret,   ret,      rej,   end,   app,    rej,   end,   rej,   end,   rej,  unq,  app,                 rej,  app],
 }
 
 // TODO return errors as type, don't throw

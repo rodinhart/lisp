@@ -10,6 +10,7 @@ test("read", () => {
   expect(read("false")).toEqual(false)
   expect(read("true")).toEqual(true)
   expect(read("42")).toEqual(42)
+  expect(read("-2")).toEqual(-2)
   expect(read("3.1415")).toEqual(3.1415)
   expect(read(`"hello"`)).toEqual("hello")
   expect(read("hello")).toEqual(Symbol.for("hello"))
