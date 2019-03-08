@@ -56,8 +56,8 @@
                    (if (= pat ())
                     ()
                     (concat_list
-                     (destruct (car pat) (list (syntax first) arg))
-                     (destruct (cdr pat) (list (syntax rest) arg)))))))
+                     (destruct (car pat) (list (quote first) arg))
+                     (destruct (cdr pat) (list (quote rest) arg)))))))
 
 ;; Flatten a parameter pattern
 (define flatten (lambda (pat)

@@ -61,10 +61,10 @@ test("compile", () => {
   ).toEqual(24)
 
   expect(
-    thread(`(syntax (x y (unquote z)))`, [
+    thread("`(x y ~z)", [
       read,
       x => compile(x, {}),
-      x => sandbox(x, { ...primitive, z: 42 }),
+      x => sandbox(x, { ...primitive, list: (...xs) => toList(xs), z: 42 }),
       print
     ])
   ).toEqual("(x y 42)")

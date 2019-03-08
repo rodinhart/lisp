@@ -251,7 +251,6 @@ So both are valid.
 
 ## TODO
 
-- expandmacro
 - print syntax/unquote as `/~ (rename them?)
 - macros expanded before time, i.e. `(let [o ~obj]) will expand macro first
 - cond
@@ -265,7 +264,7 @@ So both are valid.
 - documentation
 - make (.log js/console . xs) work
 - ({} "hello") and ("hello" {})? IFn?
-- macroexpand
+- macroexpand - (quote (let [x 10] x))
 - ISeq for objects
 - test seqArray.iterator
 - arity?

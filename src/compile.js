@@ -1,4 +1,4 @@
-const { EMPTY, car, cdr, isCons } = require("./list.js")
+const { EMPTY, car, cdr, Cons, isCons } = require("./list.js")
 const { map } = require("./ISeq.js")
 
 const ENV = "env"
@@ -127,29 +127,6 @@ const compile = (x, env) => {
         : x === EMPTY
         ? `${ENV}["EMPTY"]`
         : `${ENV}["cons"](${_(car(x))}, ${_(cdr(x))})`
-
-    return _(car(cdr(x)))
-  }
-
-  if (op === Symbol.for("syntax")) {
-    const _ = x => {
-      if (typeof x === "symbol") return `Symbol.for("${Symbol.keyFor(x)}")`
-      if (isCons(x)) {
-        if (x === EMPTY) return `${ENV}["EMPTY"]`
-
-        if (car(x) === Symbol.for("unquote")) {
-          return compile(car(cdr(x)), env)
-        }
-
-        return `${ENV}["cons"](${_(car(x))},${_(cdr(x))})`
-      }
-
-      if (x instanceof Array) {
-        return `[${x.map(_).join(",")}]`
-      }
-
-      return JSON.stringify(x)
-    }
 
     return _(car(cdr(x)))
   }

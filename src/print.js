@@ -38,7 +38,7 @@ const prn = x => {
   }
 
   if (typeof x === "function") {
-    return "[procedure]"
+    return x.macro ? "[macro]" : "[procedure]"
   }
 
   return `{${Object.entries(x)
