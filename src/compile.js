@@ -56,7 +56,7 @@ const compile = (x, env) => {
     if (op === Symbol.for("macro")) {
       code = `Object.assign(${code}, {macro:true})`
     }
-#
+
     return code
   }
 
