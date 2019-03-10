@@ -110,6 +110,13 @@
   `(let [z ~x]
     (if z z ~y)))
 
+;; (cond p x q y) -> (if p x (if q y))
+(defmacro cond xs
+  (if (empty? xs)
+    undefined
+    `(if ~(first xs) ~(first (rest xs))
+      ~(concat_list `(cond) (rest (rest xs))))))
+
 (defn map (f xs)
   (if (empty? xs)
     ()
