@@ -45,7 +45,9 @@ test("compile", () => {
 
   expect(compile(read("(if 1 2)"), {})).toEqual("((1) ? (2) : (undefined))")
 
-  expect(compile(read("(define x 42)"), {})).toEqual(`${ENV}["x"] = (42), "x"`)
+  expect(compile(read("(define x 42)"), {})).toEqual(
+    `${ENV}["x"] = (42), Symbol.for("x")`
+  )
 
   expect(
     sandbox(

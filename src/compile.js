@@ -56,7 +56,7 @@ const compile = (x, env) => {
     if (op === Symbol.for("macro")) {
       code = `Object.assign(${code}, {macro:true})`
     }
-
+#
     return code
   }
 
@@ -73,7 +73,7 @@ const compile = (x, env) => {
   if (op === Symbol.for("define")) {
     const name = Symbol.keyFor(car(cdr(x)))
     const value = compile(car(cdr(cdr(x))), env)
-    return `${ENV}["${name}"] = (${value}), "${name}"`
+    return `${ENV}["${name}"] = (${value}), Symbol.for("${name}")`
   }
 
   if (op === Symbol.for("loop")) {

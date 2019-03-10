@@ -251,7 +251,6 @@ So both are valid.
 
 ## TODO
 
-- define to return symbol, not string
 - add strings with spaces
 - define proper interfaces (like ISeq) using Symbols on prototypes
 - How to compile ahead of time without running costly expressions?
