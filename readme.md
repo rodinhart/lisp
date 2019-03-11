@@ -2,6 +2,13 @@
 
 Implementation in JavaScript that compiles to JavaScript and then evals the resulting code. Goal is maximum interoperability with JavaScript. Large parts are lifted from Scheme and Clojure.
 
+## apply
+
+```clj
+(define nums [1 2 3 4])
+(apply + nums) ; 10
+```
+
 ## arrays
 
 Arrays are supported as literals.
@@ -32,6 +39,23 @@ Arrays are supported as literals.
 (lambda (x y . z) z) ; (x, y, ...z) => z
 ```
 
+## concat
+
+Conact two sequences.
+
+```clj
+(concat [1 2] `(3 4)) ; (1 2 3 4)
+```
+
+## cond
+
+```clj
+(cond
+  (= x 10) "x is 10"
+  (> x 10) "x greater than 10"
+  true "x less than 10")
+```
+
 ## define
 
 Use `define` to create a reference to a value at the top level of a module.
@@ -48,6 +72,30 @@ Note that `define` can be reused to fix code when using the repl.
 
 ;; later in that session
 (define square (lambda (x) (* x x)))
+```
+
+## defmacro
+
+Shorthand for defining a macro.
+
+```clj
+(defmacro infix (a op b) (list op a b))
+```
+
+## defn
+
+Shorthand for defining a function.
+
+```clj
+(defn square (x) (* x x))
+```
+
+## fn
+
+Create a function, with destructuring.
+
+```clj
+((fn ((x y) (u v)) [(+ x u) (+ y v)]) [1 2] [3 4]) ; [4 6]
 ```
 
 ## if
@@ -111,20 +159,34 @@ The core of any lisp is definitely lambda calculus.
   (+ a b))
 ```
 
-## lists
+## let
+
+```clj
+(let [x (+ 1 2) y (+ 3 4)]
+  (* x y)) ; 21
+```
+
+## list
 
 List implements the traditional singly linked list in a lisp using `cons` cells.
 
 ```clj
-(define lst (cons 2 (cons 3 ())))
-
-
+(define lst (cons 2 (cons 3 ()))) ; (2 3)
+(define lst2 (list 1 2 3 4)) ; (1 2 3 4)
 ```
 
 Note that the `cdr` of a `cons` cell doesn't have to hold another `cons`, but the result won't be a sequence.
 
 ```clj
 (define pair (cons 2 3))
+```
+
+## log
+
+Log JavaScript value directly to the console.
+
+```clj
+(log {1 2 3 4}) ; {"1": 2, "3": 4}
 ```
 
 ## loop/recur
@@ -183,6 +245,14 @@ Note that keys will always end up as strings.
 
 ```clj
 { 42 42 } ; { "42" 42 }
+```
+
+## println
+
+Write a value to the console using the lisp printe.
+
+```clj
+(println {1 2 3 4}) ; {"1" 2 "3" 4}
 ```
 
 ## sequences
@@ -251,7 +321,6 @@ So both are valid.
 
 ## TODO
 
-- add strings with spaces
 - define proper interfaces (like ISeq) using Symbols on prototypes
 - How to compile ahead of time without running costly expressions?
   - Need to run some expressions: they might be defining macros
@@ -264,3 +333,4 @@ So both are valid.
 - ISeq for objects
 - test seqArray.iterator
 - arity?
+- destructure let (using fn?)
