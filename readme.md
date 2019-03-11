@@ -2,6 +2,15 @@
 
 Implementation in JavaScript that compiles to JavaScript and then evals the resulting code. Goal is maximum interoperability with JavaScript. Large parts are lifted from Scheme and Clojure.
 
+## and
+
+```clj
+(and "" 0) ; ""
+(and 0 "") ; 0
+(and "a" 1) ; 1
+(and 1 "a") ; "a"
+```
+
 ## apply
 
 ```clj
@@ -88,6 +97,12 @@ Shorthand for defining a function.
 
 ```clj
 (defn square (x) (* x x))
+```
+
+## doto
+
+```clj
+(doto js/console (.log "Hello") (.log "World"))
 ```
 
 ## fn
@@ -218,6 +233,12 @@ A syntax quote and unquote are provided to make reading and writing macros simpl
 `(= ~x y) ; (= 10 y)
 ```
 
+## map
+
+```clj
+(map (fn (x) (+ x 1)) [1 2 3]) ; (2 3 4)
+```
+
 ## numbers
 
 Just like in JavaScript, `number` is the only numeric type known.
@@ -245,6 +266,15 @@ Note that keys will always end up as strings.
 
 ```clj
 { 42 42 } ; { "42" 42 }
+```
+
+## or
+
+```clj
+(or 0 "") ; ""
+(or "" 0) ; 0
+(or 1 "a") ; 1
+(or 0 "a") ; a
 ```
 
 ## println
@@ -295,6 +325,12 @@ console.log(
 )
 ```
 
+## take
+
+```clj
+(take 5 [1 2 3 4 5 6 7 8 9 10]) ; (1 2 3 4 5)
+```
+
 ## undefined
 
 `undefined` maps directly to `undefined` in JavaScript.
@@ -319,11 +355,15 @@ So both are valid.
 (define y [1, 2, 3])
 ```
 
+## zip
+
+```clj
+(zip + [1 2 4] [8 16]) ; (9 18)
+```
+
 ## TODO
 
 - define proper interfaces (like ISeq) using Symbols on prototypes
-- How to compile ahead of time without running costly expressions?
-  - Need to run some expressions: they might be defining macros
 - Throw error on unknown symbol
 - use [] anywhere?
 - documentation
@@ -334,3 +374,4 @@ So both are valid.
 - test seqArray.iterator
 - arity?
 - destructure let (using fn?)
+- (import web ./web.clj) (.getDocumentById web/document "canvas")

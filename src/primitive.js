@@ -15,6 +15,8 @@ module.exports = {
   cdr,
   cons: Cons,
   "atom?": isAtom,
+
+  array: (...xs) => xs,
   object: (...xs) => {
     const r = {}
     for (let i = 0; i + 1 < xs.length; i += 2) {
