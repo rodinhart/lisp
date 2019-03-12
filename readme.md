@@ -367,8 +367,9 @@ So both are valid.
 - Throw error on unknown symbol
 - use [] anywhere?
 - documentation
-- ({} "hello") and ("hello" {})? IFn?
 - macroexpand - (quote (let [x 10] x))
 - ISeq for objects
 - arity?
 - destructure {}
+- is ("foo" {}) a good idea?
+- should ("foo" null) return undefined?

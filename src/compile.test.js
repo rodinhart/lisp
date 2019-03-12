@@ -28,7 +28,7 @@ test("compile", () => {
 
   expect(compile(EMPTY)).toEqual(`env["EMPTY"]`)
   expect(compile(read("(lambda (x y) (f y x))"), { f: true })).toEqual(
-    "((x,y) => ((f)(y,x)))"
+    `((x,y) => (${ENV}.IFn(f)(y,x)))`
   )
   expect(compile(read("(lambda x x)"), {})).toEqual("((...x) => (x))")
   expect(compile(read("(lambda () 42)"), {})).toEqual("(() => (42))")
@@ -37,10 +37,10 @@ test("compile", () => {
       log: true,
       "*": true
     })
-  ).toEqual(`((x) => ((log)("double"),(*)(2,x)))`)
+  ).toEqual(`((x) => (${ENV}.IFn(log)("double"),${ENV}.IFn(*)(2,x)))`)
 
   expect(compile(read("(if x 42 (f 1 2))"), { x: true, f: true })).toEqual(
-    "((x) ? (42) : ((f)(1,2)))"
+    `((x) ? (42) : (${ENV}.IFn(f)(1,2)))`
   )
 
   expect(compile(read("(if 1 2)"), {})).toEqual("((1) ? (2) : (undefined))")
@@ -101,8 +101,9 @@ test("compile", () => {
   ).toEqual("(a 42)")
 
   expect(compile(read("(f x y)"), { f: true, x: true, y: true })).toEqual(
-    "(f)(x,y)"
+    `${ENV}.IFn(f)(x,y)`
   )
+
   expect(
     compile(read("(f x y . z)"), {
       f: true,
@@ -110,7 +111,7 @@ test("compile", () => {
       y: true,
       z: true
     })
-  ).toEqual("(f)(x,y,...env.ISeq(z))")
+  ).toEqual(`${ENV}.IFn(f)(x,y,...${ENV}.ISeq(z))`)
 
   expect(
     compile(read("(.prop obj x y)"), { obj: true, x: true, y: true })
@@ -119,4 +120,28 @@ test("compile", () => {
   expect(compile(read("(.prop obj . xs)"), { obj: true, xs: true })).toEqual(
     `obj["prop"](...env.ISeq(xs))`
   )
+
+  expect(
+    thread(`("foo" {"foo" "hello"})`, [
+      read,
+      x => compile(x, { x: true }),
+      x => sandbox(x, { ...primitive })
+    ])
+  ).toEqual("hello")
+
+  expect(
+    thread(`({"foo" "world"} "foo")`, [
+      read,
+      x => compile(x, { x: true }),
+      x => sandbox(x, { ...primitive })
+    ])
+  ).toEqual("world")
+
+  expect(
+    thread(`([1 2 3 4] 2)`, [
+      read,
+      x => compile(x, { x: true }),
+      x => sandbox(x, { ...primitive })
+    ])
+  ).toEqual(3)
 })

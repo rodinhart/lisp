@@ -1,4 +1,5 @@
 const { EMPTY, car, cdr, Cons } = require("./list.js")
+const { IFn } = require("./IFn.js")
 const { first, isEmpty, ISeq, rest, Seq } = require("./ISeq.js")
 const prn = require("./print.js")
 
@@ -7,6 +8,7 @@ const isAtom = x => typeof x !== "object"
 module.exports = {
   first,
   "empty?": isEmpty,
+  IFn,
   ISeq,
   rest,
   Seq,

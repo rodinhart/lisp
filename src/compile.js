@@ -173,7 +173,7 @@ const compile = (x, env) => {
 
   op = compile(op, env)
 
-  return `(${op})(${args.join(",")})`
+  return `${ENV}.IFn(${op})(${args.join(",")})`
 }
 
 module.exports = compile
