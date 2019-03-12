@@ -372,4 +372,3 @@ So both are valid.
 - ISeq for objects
 - test seqArray.iterator
 - arity?
-- (import web ./web.clj) (.getDocumentById web/document "canvas")

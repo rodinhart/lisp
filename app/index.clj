@@ -1,7 +1,8 @@
 (import core ../src/core.clj)
+(import dom ./dom.js)
 (import util ./util.js)
 
-(define canvas (.getElementById js/document "canvas"))
+(define canvas (.getElementById dom/document "canvas"))
 (define g (.getContext canvas "2d"))
 
 (defn identity (x) x)
