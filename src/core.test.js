@@ -32,7 +32,7 @@ test("fn", () => {
 
 test("let", () => {
   expect(prn(lett([Symbol.for("x"), 2, Symbol.for("y"), 3], 5, 7))).toEqual(
-    "((lambda (x y) 5 7) 2 3)"
+    "((fn (x y) 5 7) 2 3)"
   )
 })
 

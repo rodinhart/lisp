@@ -2,46 +2,26 @@
 
 (define apply (lambda (f args) (f . args)))
 
-;; Take a sequence of operands and put them in a list
-(define _list (lambda (x)
-               (if (empty? x)
-                ()
-                (cons (first x) (_list (rest x))))))
-(define list (lambda x (_list x)))
-
-;; (let [x 28 y 14] (println x) (println y) (+ x y))
-;; ((lambda (x y)
-;;   (println x)
-;;   (println y)
-;;   (+ x y))
-;; 28 14)
-;; TODO? Hide _let1 and _let2 using let :)
-(define _let1 (lambda (binds)
-  (if (empty? binds)
-    ()
-    (cons (first binds) (_let1 (rest (rest binds)))))))
-
-(define _let2 (lambda (binds)
-  (if (empty? binds)
-    ()
-    (cons (first (rest binds)) (_let2 (rest (rest binds)))))))
-
-(define let (macro (binds . body)
-  (cons
-    (cons `lambda (cons (_let1 binds) (list . body)))
-    (_let2 binds))))
+;; Take a sequence of operands and put them in a list.
+;; needed to build forms in macros?
+(define list
+  ((lambda (f)
+    (lambda xs (f f xs)))
+  (lambda (f xs)
+    (if (empty? xs)
+      ()
+      (cons (first xs) (f f (rest xs)))))))
 
 ;; concat sequences
-(define concat (let [
-  f (lambda (f xs x)
+(define concat ((lambda (f)
+  (lambda xs
+    (f f xs ())))
+  (lambda (f xs x)
     (if (empty? x)
       (if (empty? xs)
         ()
         (f f (rest xs) (first xs)))
-      (seq (first x) (f f xs (rest x)))))
-  ]
-  (lambda xs
-    (f f xs ()))))
+      (seq (first x) (f f xs (rest x)))))))
 
 ;; concat sequences to a list
 ;; maybe make a specialist version for performance, and so
@@ -99,6 +79,31 @@
       (list `macro params)
       body))))
 
+;; (let [x 28 y 14] (println x) (println y) (+ x y))
+;; ((lambda (x y)
+;;   (println x)
+;;   (println y)
+;;   (+ x y))
+;; 28 14)
+;; TODO? Hide _let1 and _let2 using let :)
+(define _let1 (lambda (binds)
+  (if (empty? binds)
+    ()
+    (cons (first binds) (_let1 (rest (rest binds)))))))
+
+(define _let2 (lambda (binds)
+  (if (empty? binds)
+    ()
+    (cons (first (rest binds)) (_let2 (rest (rest binds)))))))
+
+(define let (macro (binds . body)
+  (cons
+    (cons `fn (cons (_let1 binds) (list . body)))
+    (_let2 binds))))
+
+
+;; CONDITIONALS
+
 ;; (and x y) -> ((lambda (z) (if z y z)) x)
 (defmacro and (x y)
   `(let [z ~x]
@@ -115,6 +120,9 @@
     undefined
     `(if ~(first xs) ~(first (rest xs))
       ~(concat_list `(cond) (rest (rest xs))))))
+
+
+;; SEQUENCES
 
 (defn map (f xs)
   (if (empty? xs)
@@ -138,7 +146,11 @@
       ()
       (seq (f (first xs) (first ys)) (zip f (rest xs) (rest ys))))))
 
+;; IO
 (define println (lambda xs (apply log (map prn xs))))
+
+
+;; TEST
 
 (define fib (seq 1 (seq 1 (zip + fib (rest fib)))))
 
