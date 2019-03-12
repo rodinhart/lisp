@@ -370,5 +370,5 @@ So both are valid.
 - ({} "hello") and ("hello" {})? IFn?
 - macroexpand - (quote (let [x 10] x))
 - ISeq for objects
-- test seqArray.iterator
 - arity?
+- destructure {}
