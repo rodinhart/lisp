@@ -1,7 +1,6 @@
-(define apply (lambda (f args) (f . args)))
+(define log (lambda x (.log js/console . x)))
 
-(define log (lambda (x) (.log js/console x)))
-(define println (lambda (x) (.log js/console (prn x))))
+(define apply (lambda (f args) (f . args)))
 
 ;; Take a sequence of operands and put them in a list
 (define _list (lambda (x)
@@ -138,6 +137,8 @@
     (if (empty? ys)
       ()
       (seq (f (first xs) (first ys)) (zip f (rest xs) (rest ys))))))
+
+(define println (lambda xs (apply log (map prn xs))))
 
 (define fib (seq 1 (seq 1 (zip + fib (rest fib)))))
 

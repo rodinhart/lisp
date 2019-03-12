@@ -18,12 +18,12 @@ Implementation in JavaScript that compiles to JavaScript and then evals the resu
 (apply + nums) ; 10
 ```
 
-## arrays
+## array
 
 Arrays are supported as literals.
 
 ```clj
-(define 5-primes [2 3 5 7 11])
+(define primes [2 3 5 7 11])
 
 (define key "foo")
 (define value 42)
@@ -253,7 +253,7 @@ Note there is no numeric tower.
 
 `null` maps directly to `null` in JavaScript. Note that `nil` does not exist.
 
-## objects
+## object
 
 Objects are supported as literals.
 
@@ -279,7 +279,7 @@ Note that keys will always end up as strings.
 
 ## println
 
-Write a value to the console using the lisp printe.
+Write a value to the console using the lisp printer.
 
 ```clj
 (println {1 2 3 4}) ; {"1" 2 "3" 4}
@@ -367,7 +367,6 @@ So both are valid.
 - Throw error on unknown symbol
 - use [] anywhere?
 - documentation
-- make (.log js/console . xs) work
 - ({} "hello") and ("hello" {})? IFn?
 - macroexpand - (quote (let [x 10] x))
 - ISeq for objects

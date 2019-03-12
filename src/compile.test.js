@@ -115,4 +115,8 @@ test("compile", () => {
   expect(
     compile(read("(.prop obj x y)"), { obj: true, x: true, y: true })
   ).toEqual(`obj["prop"](x,y)`)
+
+  expect(compile(read("(.prop obj . xs)"), { obj: true, xs: true })).toEqual(
+    `obj["prop"](...env.ISeq(xs))`
+  )
 })

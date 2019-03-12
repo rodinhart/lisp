@@ -153,13 +153,6 @@ const compile = (x, env) => {
     return "" //`Object.assign(${ENV}, require("${car(cdr(x))}"))`
   }
 
-  if (typeof op === "symbol" && Symbol.keyFor(op)[0] === ".") {
-    const obj = compile(car(cdr(x)), env)
-    const args = [...map(x => compile(x, env), cdr(cdr(x)))]
-    return `${obj}["${Symbol.keyFor(op).substr(1)}"](${args.join(",")})`
-  }
-
-  op = compile(op, env)
   let args = []
   let cur = cdr(x)
   while (cur !== EMPTY) {
@@ -171,6 +164,14 @@ const compile = (x, env) => {
       cur = EMPTY
     }
   }
+
+  if (typeof op === "symbol" && Symbol.keyFor(op)[0] === ".") {
+    return `${args[0]}["${Symbol.keyFor(op).substr(1)}"](${args
+      .slice(1)
+      .join(",")})`
+  }
+
+  op = compile(op, env)
 
   return `(${op})(${args.join(",")})`
 }
