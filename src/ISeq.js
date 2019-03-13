@@ -64,9 +64,6 @@ const fold = (f, init, xs) => {
 const map = (f, xs) =>
   isEmpty(xs) ? EMPTY : Seq(() => f(first(xs)), () => map(f, rest(xs)))
 
-// toList :: ISeq a -> List a
-const toList = xs => (isEmpty(xs) ? EMPTY : Cons(first(xs), toList(rest(xs))))
-
 module.exports = {
   first,
   fold,
@@ -74,6 +71,5 @@ module.exports = {
   ISeq,
   map,
   rest,
-  Seq,
-  toList
+  Seq
 }

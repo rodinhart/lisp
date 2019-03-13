@@ -19,6 +19,11 @@ module.exports = {
   "atom?": isAtom,
 
   array: (...xs) => xs,
+  list: (...xs) => {
+    const _ = i => (i < xs.length ? Cons(xs[i], _(i + 1)) : EMPTY)
+
+    return _(0)
+  },
   object: (...xs) => {
     const r = {}
     for (let i = 0; i + 1 < xs.length; i += 2) {

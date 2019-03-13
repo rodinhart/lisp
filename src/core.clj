@@ -2,16 +2,6 @@
 
 (define apply (lambda (f args) (f . args)))
 
-;; Take a sequence of operands and put them in a list.
-;; needed to build forms in macros?
-(define list
-  ((lambda (f)
-    (lambda xs (f f xs)))
-  (lambda (f xs)
-    (if (empty? xs)
-      ()
-      (cons (first xs) (f f (rest xs)))))))
-
 ;; concat sequences
 (define concat ((lambda (f)
   (lambda xs
@@ -149,11 +139,7 @@
 (define println (lambda xs (apply log (map prn xs))))
 
 
-;; TEST
-
-(define fib (seq 1 (seq 1 (zip + fib (rest fib)))))
-
-(define first-ten (take 10 fib))
+;; INTEROP
 
 ;; (doto obj (f x)) -> ((lambda (o) (f o x) o) obj)
 ;; (doto obj (f x)) -> (let [o obj] (f o x) o)
@@ -164,3 +150,10 @@
       (lambda (x) (concat_list (list (car x) `o) (cdr x)))
       xs)
     `(o)))
+
+
+;; TEST
+
+(define fib (seq 1 (seq 1 (zip + fib (rest fib)))))
+
+(define first-ten (take 10 fib))

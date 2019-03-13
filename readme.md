@@ -363,7 +363,6 @@ So both are valid.
 
 ## TODO
 
-- define proper interfaces (like ISeq) using Symbols on prototypes
 - Throw error on unknown symbol
   - make env richer?
   - env("list")?
@@ -372,3 +371,4 @@ So both are valid.
 - destructure {}
 - is ("foo" {}) a good idea?
 - should ("foo" null) return undefined?
+- define seq as macro and using deftype implementing ISeq protocol?

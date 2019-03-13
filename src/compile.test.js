@@ -1,5 +1,4 @@
 const compile = require("./compile.js")
-const { toList } = require("./ISeq.js")
 const { thread } = require("./lang.js")
 const { EMPTY } = require("./list.js")
 const primitive = require("./primitive.js")
@@ -66,7 +65,7 @@ test("compile", () => {
     thread("`(x y ~z)", [
       read,
       x => compile(x, {}),
-      x => sandbox(x, { ...primitive, list: (...xs) => toList(xs), z: 42 }),
+      x => sandbox(x, { ...primitive, z: 42 }),
       print
     ])
   ).toEqual("(x y 42)")
@@ -75,8 +74,7 @@ test("compile", () => {
     thread("`[a 1 ~b 3]", [
       read,
       x => compile(x, {}),
-      x =>
-        sandbox(x, { ...primitive, list: (...xs) => toList(xs), a: 10, b: 2 }),
+      x => sandbox(x, { ...primitive, a: 10, b: 2 }),
       print
     ])
   ).toEqual("[a 1 2 3]")
@@ -85,8 +83,7 @@ test("compile", () => {
     thread("`{a 1 ~b 3}", [
       read,
       x => compile(x, {}),
-      x =>
-        sandbox(x, { ...primitive, list: (...xs) => toList(xs), a: 10, b: 2 }),
+      x => sandbox(x, { ...primitive, a: 10, b: 2 }),
       print
     ])
   ).toEqual("(object a 1 2 3)")
@@ -95,7 +92,7 @@ test("compile", () => {
     thread("`(a ~(car (cdr `(b ~c))))", [
       read,
       x => compile(x, {}),
-      x => sandbox(x, { ...primitive, list: (...xs) => toList(xs), c: 42 }),
+      x => sandbox(x, { ...primitive, c: 42 }),
       print
     ])
   ).toEqual("(a 42)")
