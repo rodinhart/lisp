@@ -160,7 +160,7 @@ const compile = (x, env) => {
       args.push(compile(car(cur), env))
       cur = cdr(cur)
     } else {
-      args.push(`...${ENV}.ISeq(${compile(cur, env)})`)
+      args.push(`...(${compile(cur, env)})`)
       cur = EMPTY
     }
   }

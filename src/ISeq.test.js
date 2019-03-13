@@ -2,7 +2,7 @@ const { first, fold, isEmpty, map, ISeq, rest, Seq } = require("./ISeq.js")
 const { EMPTY } = require("./list.js")
 
 test("ISeq", () => {
-  let t = ISeq([2, 3, 5])
+  let t = [2, 3, 5]
   expect(first(t)).toEqual(2)
 
   t = rest(t)

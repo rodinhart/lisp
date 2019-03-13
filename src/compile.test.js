@@ -111,14 +111,14 @@ test("compile", () => {
       y: true,
       z: true
     })
-  ).toEqual(`${ENV}.IFn(f)(x,y,...${ENV}.ISeq(z))`)
+  ).toEqual(`${ENV}.IFn(f)(x,y,...(z))`)
 
   expect(
     compile(read("(.prop obj x y)"), { obj: true, x: true, y: true })
   ).toEqual(`obj["prop"](x,y)`)
 
   expect(compile(read("(.prop obj . xs)"), { obj: true, xs: true })).toEqual(
-    `obj["prop"](...env.ISeq(xs))`
+    `obj["prop"](...(xs))`
   )
 
   expect(

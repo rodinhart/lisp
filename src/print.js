@@ -1,3 +1,4 @@
+const { ISeq } = require("./ISeq.js")
 const { car, cdr, EMPTY, isCons } = require("./list.js")
 
 const prn = x => {
@@ -27,14 +28,8 @@ const prn = x => {
     return `[${x.map(prn).join(" ")}]`
   }
 
-  if (x && typeof x.first === "function" && typeof x.rest === "function") {
-    const r = []
-    while (x !== EMPTY) {
-      r.push(prn(x.first()))
-      x = x.rest()
-    }
-
-    return `(${r.join(" ")})`
+  if (x && x[Symbol.for("ISeq")]) {
+    return `(${[...x].map(prn).join(" ")})`
   }
 
   if (typeof x === "function") {

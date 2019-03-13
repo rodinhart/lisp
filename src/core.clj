@@ -121,7 +121,6 @@
     `(if ~(first xs) ~(first (rest xs))
       ~(concat_list `(cond) (rest (rest xs))))))
 
-
 ;; SEQUENCES
 
 (defn map (f xs)

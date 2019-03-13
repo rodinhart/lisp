@@ -4,7 +4,9 @@ const seqArray = (xs, i) =>
   i < xs.length
     ? {
         first: () => xs[i],
-        rest: () => seqArray(xs, i + 1),
+        rest: () => ({
+          [Symbol.for("ISeq")]: seqArray(xs, i + 1)
+        }),
         [Symbol.iterator]: function*() {
           for (let j = i; j < xs.length; j += 1) {
             yield xs[j]
@@ -16,9 +18,7 @@ const seqArray = (xs, i) =>
 const ISeq = x => {
   if (x === EMPTY) return EMPTY
 
-  if (x && typeof x.first === "function" && typeof x.rest === "function") {
-    return x
-  }
+  if (x && x[Symbol.for("ISeq")]) return x[Symbol.for("ISeq")]
 
   if (x instanceof Array) return seqArray(x, 0)
 
@@ -33,15 +33,17 @@ const first = x => ISeq(x).first()
 const rest = x => ISeq(x).rest()
 const isEmpty = x => ISeq(x) === EMPTY
 
-const Seq = (first, rest) => ({
-  first,
-  rest,
+const Seq = (_first, _rest) => ({
+  [Symbol.for("ISeq")]: {
+    first: _first,
+    rest: _rest
+  },
   toString: () => "[Seq]",
   [Symbol.iterator]: function*() {
-    let seq = Seq(first, rest)
-    while (seq !== EMPTY) {
-      yield seq.first()
-      seq = seq.rest()
+    let seq = Seq(_first, _rest)
+    while (!isEmpty(seq)) {
+      yield first(seq)
+      seq = rest(seq)
     }
   }
 })
@@ -49,7 +51,7 @@ const Seq = (first, rest) => ({
 // fold :: (r -> a -> r) -> r -> ISeq a -> r
 const fold = (f, init, xs) => {
   let r = init
-  let c = ISeq(xs)
+  let c = xs
   while (!isEmpty(c)) {
     r = f(r, first(c))
     c = rest(c)

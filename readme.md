@@ -365,10 +365,9 @@ So both are valid.
 
 - define proper interfaces (like ISeq) using Symbols on prototypes
 - Throw error on unknown symbol
-- use [] anywhere?
-- documentation
+  - make env richer?
+  - env("list")?
 - macroexpand - (quote (let [x 10] x))
-- ISeq for objects
 - arity?
 - destructure {}
 - is ("foo" {}) a good idea?
