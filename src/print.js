@@ -1,4 +1,3 @@
-const { ISeq } = require("./ISeq.js")
 const { car, cdr, EMPTY, isCons } = require("./list.js")
 
 const prn = x => {

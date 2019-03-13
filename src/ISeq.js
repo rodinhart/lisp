@@ -1,17 +1,13 @@
-const { EMPTY, Cons } = require("./list.js")
+const { EMPTY } = require("./list.js")
 
+// Cast Array to ISeq
 const seqArray = (xs, i) =>
   i < xs.length
     ? {
         first: () => xs[i],
         rest: () => ({
           [Symbol.for("ISeq")]: seqArray(xs, i + 1)
-        }),
-        [Symbol.iterator]: function*() {
-          for (let j = i; j < xs.length; j += 1) {
-            yield xs[j]
-          }
-        }
+        })
       }
     : EMPTY
 
@@ -29,23 +25,23 @@ const ISeq = x => {
   throw new Error(`Failed to get ISeq for ${x}`)
 }
 
+const isEmpty = x => ISeq(x) === EMPTY
 const first = x => ISeq(x).first()
 const rest = x => ISeq(x).rest()
-const isEmpty = x => ISeq(x) === EMPTY
 
 const Seq = (_first, _rest) => ({
   [Symbol.for("ISeq")]: {
     first: _first,
     rest: _rest
   },
-  toString: () => "[Seq]",
   [Symbol.iterator]: function*() {
     let seq = Seq(_first, _rest)
     while (!isEmpty(seq)) {
       yield first(seq)
       seq = rest(seq)
     }
-  }
+  },
+  toString: () => "[Seq]"
 })
 
 // fold :: (r -> a -> r) -> r -> ISeq a -> r

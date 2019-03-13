@@ -8,11 +8,11 @@ const Cons = (car, cdr) => ({
   _type: "Cons",
   car,
   cdr,
-  toString: () => `(${car} . ${cdr})`,
   [Symbol.for("ISeq")]: {
     first: () => car,
     rest: () => cdr
-  }
+  },
+  toString: () => `(${car} . ${cdr})`
 })
 
 const isCons = p => p && p._type === "Cons"

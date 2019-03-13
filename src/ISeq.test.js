@@ -21,10 +21,6 @@ test("Seq", () => {
   expect([...t]).toEqual([2, 3, 5])
 })
 
-test("seqArray", () => {
-  expect([...ISeq([2, 3, 5])]).toEqual([2, 3, 5])
-})
-
 test("fold", () => {
   expect(fold((a, b) => a + b, 100, [2, 3, 5])).toEqual(110)
 })

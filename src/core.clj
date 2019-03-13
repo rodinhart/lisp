@@ -140,6 +140,8 @@
 
 
 ;; INTEROP
+(defmacro do xs
+  (list (concat_list `(lambda ()) xs)))
 
 ;; (doto obj (f x)) -> ((lambda (o) (f o x) o) obj)
 ;; (doto obj (f x)) -> (let [o obj] (f o x) o)
