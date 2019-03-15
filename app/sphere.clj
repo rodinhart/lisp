@@ -1,0 +1,1 @@
+(defn intersect (lin sph))

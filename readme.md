@@ -99,6 +99,15 @@ Shorthand for defining a function.
 (defn square (x) (* x x))
 ```
 
+## do
+
+```clj
+(if flag
+  (do
+    (log "something")
+    (log "something else")))
+```
+
 ## doto
 
 ```clj
@@ -363,6 +372,7 @@ So both are valid.
 
 ## TODO
 
+- make loop/recur (loop [x 1 y 2]) using []?
 - Throw error on unknown symbol
   - make env richer?
   - env("list")?

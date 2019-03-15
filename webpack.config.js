@@ -1,7 +1,7 @@
 const path = require("path")
 
 module.exports = {
-  entry: "./app/index.clj",
+  entry: "./app/test.clj",
   mode: "production",
   module: {
     rules: [

@@ -1,50 +1,23 @@
-(import core ../src/core.clj)
+(import camera ./camera.clj)
 (import dom ./dom.js)
-(import util ./util.js)
+(import film ./film.clj)
+(import outside ./outside.clj)
 
 (define canvas (.getElementById dom/document "canvas"))
-(define g (.getContext canvas "2d"))
+(define W (canvas "width"))
+(define H (canvas "height"))
 
-(defn identity (x) x)
+(define state { "n" 0 "photons" [] })
 
-;; When this is used from a loop, it fails?
-(defn do2 xs
-  (loop (c xs r undefined)
-    (if (empty? c)
-      r
-      (recur (rest c) (first c)))))
+;; init photons
+(dom/withImg canvas (fn (x y W H)
+  (set! (state "photons") (+ x (* y W)) 0)
+  [255 127 63]))
 
-(defn toHex (x)
-  (.substr (.join ["0" (.toString x 16)] "") -2))
-
-(define N 256)
-(define x -2)
-(define y -2)
-(define s 4)
-(define q (div s N))
-
-(loop (sx 0)
-  (if (< sx N)
-    (do
-      (loop (sy 0)
-        (if (< sy N)
-          (do
-            ((lambda (rx ry)
-              (loop (a rx b ry n 255)
-                ((lambda (c d)
-                  (if (> n 0) ; need and
-                    (if (< (+ c d) 4)
-                      (recur (+ (- c d) rx) (+ (* 2 a b) ry) (- n 1))
-                      (set! g "fillStyle" (util/toArc n)))
-                    (set! g "fillStyle" (util/toArc n)))
-                ) (* a a) (* b b))
-            )) (+ x (* q sx)) (+ y (* q sy)))
-            (doto g
-              ; (set! "fillStyle" (.join ["#" "00" (toHex sx) (toHex sy)] ""))
-              (.beginPath)
-              (.rect (+ 0.5 sx) (+ 0.5 sy) 1 1)
-              (.fill))
-            (recur (+ sy 1)))
-          ()))
-      (recur (+ sx 1)))
-    ()))
+;; sample
+(dom/withImg canvas (fn (x y W H)
+  (log (camera/shoot
+    outside/camera
+    (/ x W)
+    (/ y H)))
+  [0 0 0]))

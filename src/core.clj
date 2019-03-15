@@ -120,6 +120,11 @@
   )
 )
 
+(defn reduce (f init xs)
+  (if (empty? xs)
+    init
+    (reduce f (f init (first xs)) (rest xs))))
+
 ;; take n from sequence
 (defn take (n xs)
  (if (> n 0)

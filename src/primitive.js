@@ -24,6 +24,8 @@ module.exports = {
 
     return _(0)
   },
+  max: (...xs) => Math.max(...xs),
+  min: (...xs) => Math.min(...xs),
   object: (...xs) => {
     const r = {}
     for (let i = 0; i + 1 < xs.length; i += 2) {
@@ -41,7 +43,7 @@ module.exports = {
   "<": (...xs) => xs[0] < xs[1],
   "=": (...xs) => xs[0] === xs[1],
   "*": (...xs) => xs.reduce((a, b) => a * b, 1),
-  div: (a, b) => a / b,
+  "/": (a, b) => a / b,
 
   js: {
     console: console,
