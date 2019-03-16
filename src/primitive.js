@@ -37,6 +37,7 @@ module.exports = {
   prn,
 
   "set!": (obj, key, val) => (obj[key] = val),
+  "update!": (obj, key, f) => (obj[key] = f(obj[key])),
   "+": (...xs) => xs.reduce((a, b) => a + b, 0),
   "-": (...xs) => (xs.length === 1 ? -xs[0] : xs[0] - xs[1]),
   ">": (...xs) => xs[0] > xs[1],
@@ -48,6 +49,7 @@ module.exports = {
 
   js: {
     console: console,
+    setTimeout: setTimeout,
     Math: Math
   }
 }

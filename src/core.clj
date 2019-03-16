@@ -95,6 +95,12 @@
 ;; CONDITIONALS
 
 ;; (and x y) -> ((lambda (z) (if z y z)) x)
+(defmacro and2 xs
+  (if (empty? xs)
+    true
+    `(let (t ~(first xs))
+      (if t ~(concat_list `(and) (rest xs)) t))))
+
 (defmacro and (x y)
   `(let [z ~x]
     (if z ~y z)))
@@ -113,6 +119,11 @@
     undefined
     `(if ~(first xs) ~(first (rest xs))
       ~(concat_list `(cond) (rest (rest xs))))))
+
+
+;; ARITHMETIC
+(defn inc (x) (+ x 1))
+
 
 ;; SEQUENCES
 (defn fold (f init xs)
