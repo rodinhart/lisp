@@ -99,6 +99,9 @@
   `(let [z ~x]
     (if z ~y z)))
 
+;; (not x)
+(defn not (x) (if x false true))
+
 ;; (or x y) -> ((lambda (z) (if z z y)) x)
 (defmacro or (x y)
   `(let [z ~x]
@@ -112,6 +115,10 @@
       ~(concat_list `(cond) (rest (rest xs))))))
 
 ;; SEQUENCES
+(defn fold (f init xs)
+  (if (empty? xs)
+    init
+    (fold f (f init (first xs)) (rest xs))))
 
 (defn map (f xs)
   (if (empty? xs)

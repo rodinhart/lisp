@@ -38,8 +38,9 @@ module.exports = {
 
   "set!": (obj, key, val) => (obj[key] = val),
   "+": (...xs) => xs.reduce((a, b) => a + b, 0),
-  "-": (...xs) => xs[0] - xs[1],
+  "-": (...xs) => (xs.length === 1 ? -xs[0] : xs[0] - xs[1]),
   ">": (...xs) => xs[0] > xs[1],
+  ">=": (a, b) => a >= b,
   "<": (...xs) => xs[0] < xs[1],
   "=": (...xs) => xs[0] === xs[1],
   "*": (...xs) => xs.reduce((a, b) => a * b, 1),
