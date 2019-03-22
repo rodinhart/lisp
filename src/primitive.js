@@ -49,6 +49,7 @@ module.exports = {
 
   js: {
     console: console,
+    Date: Date,
     setTimeout: setTimeout,
     Math: Math
   }

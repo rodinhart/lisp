@@ -18,16 +18,28 @@
 ;; sample
 (defn sample ()
   (update! state "n" inc)
-  (dom/withImg canvas (fn (x y W H)
-    (let [ray (camera/shoot outside/camera (/ x W) (/ y H))]
+  (dom/withSize canvas (fn (x y W H)
+    (let [ray (camera/shoot outside/camera (/ (- x (/ (- W H) 2)) H) (/ y H))]
       (let [photon (film/trace ray outside/objects 0 undefined)]
-        (apply array (map
-          (fn (p) (film/gamma (state "n") p))
-          (update! (state "photons") (+ x (* y W)) (fn (x) (vec/add x photon))))))))))
+        (update! (state "photons") (+ x (* y W)) (fn (x) (vec/add x photon))))))))
 
+(defn render ()
+  (dom/withImg canvas (fn (x y W H)
+    (apply array (map
+      (fn (p) (film/gamma (state "n") p))
+      ((state "photons") (+ x (* y W))))))))
+
+(defn getTime () (.getTime (new js/Date)))
+
+(set! state "time" (getTime))
 (defn iterate ()
+  ; (sample)
+  ; (sample)
+  ; (sample)
   (sample)
-  (println (state "n"))
-  (js/setTimeout iterate 10))
+  (sample)
+  (render)
+  (log (/ (* (state "n") W H) (- (getTime) (state "time"))) "Ks/s" (state "n") "spp")
+  (js/setTimeout iterate 42))
 
 (iterate)

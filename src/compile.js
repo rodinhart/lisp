@@ -165,6 +165,10 @@ const compile = (x, env) => {
     }
   }
 
+  if (op === Symbol.for("new")) {
+    return `(new (${args[0]})(${args.slice(1).join(",")}))`
+  }
+
   if (typeof op === "symbol" && Symbol.keyFor(op)[0] === ".") {
     return `${args[0]}["${Symbol.keyFor(op).substr(1)}"](${args
       .slice(1)

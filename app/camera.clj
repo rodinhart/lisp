@@ -5,7 +5,7 @@
     {
       "origin" (cam "origin")
       "direction" (vec/norm (vec/add
-        dir
+        (vec/scale dir 2)
         (vec/scale (cam "right") (- x 0.5))
         (vec/scale (cam "up") (- y 0.5))))
     }))
