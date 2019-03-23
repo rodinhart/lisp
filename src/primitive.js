@@ -36,21 +36,50 @@ module.exports = {
   },
   prn,
 
+  get: (obj, key) => obj[key],
   "set!": (obj, key, val) => (obj[key] = val),
   "update!": (obj, key, f) => (obj[key] = f(obj[key])),
-  "+": (...xs) => xs.reduce((a, b) => a + b, 0),
+  "+": (...xs) => {
+    switch (xs.length) {
+      case 0:
+        return 0
+
+      case 1:
+        return xs[0]
+
+      case 2:
+        return xs[0] + xs[1]
+
+      default:
+        return xs.reduce((a, b) => a + b, 0)
+    }
+  },
   "-": (...xs) => (xs.length === 1 ? -xs[0] : xs[0] - xs[1]),
   ">": (...xs) => xs[0] > xs[1],
   ">=": (a, b) => a >= b,
   "<": (...xs) => xs[0] < xs[1],
   "=": (...xs) => xs[0] === xs[1],
-  "*": (...xs) => xs.reduce((a, b) => a * b, 1),
+  "*": (...xs) => {
+    switch (xs.length) {
+      case 0:
+        return 1
+
+      case 1:
+        return xs[0]
+
+      case 2:
+        return xs[0] * xs[1]
+
+      default:
+        return xs.reduce((a, b) => a * b, 1)
+    }
+  },
   "/": (a, b) => a / b,
 
   js: {
     console: console,
     Date: Date,
-    setTimeout: setTimeout,
+    setTimeout: (...args) => setTimeout(...args), // illegal invocation otherwise
     Math: Math
   }
 }

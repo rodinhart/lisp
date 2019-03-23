@@ -2,10 +2,10 @@
 
 ; sequential let?
 (defn intersect (lin sph)
-  (let [tmp (vec/sub (lin "origin") (sph "origin"))]
+  (let [tmp (vec/sub (get lin "origin") (get sph "origin"))]
     (let [
-      b (* 2 (vec/dot (lin "direction") tmp))
-      c (- (vec/dot tmp tmp) (* (sph "radius") (sph "radius")))]
+      b (* 2 (vec/dot (get lin "direction") tmp))
+      c (- (vec/dot tmp tmp) (* (get sph "radius") (get sph "radius")))]
         (let [D (- (* b b) (* 4 c))]
           (if (>= D 0)
             (let [d (- (- b) (.sqrt js/Math D))]
@@ -16,4 +16,4 @@
                     (/ d 2))))))))))
 
 (defn normal (sph point)
-  (vec/norm (vec/sub point (sph "origin"))))
+  (vec/norm (vec/sub point (get sph "origin"))))

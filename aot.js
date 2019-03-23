@@ -43,7 +43,7 @@ const aot = (source, env, target, noeval) =>
           }
 
           const expanded = macroexpand(exp, env)
-          const code = compile(expanded, {}, env)
+          const code = compile(expanded, {})
           if (!noeval) sandbox(code, env)
 
           r.push(code)

@@ -22,7 +22,7 @@
 
 (defn norm (v)
   (let [l (len v)]
-    [(/ (v 0) l) (/ (v 1) l) (/ (v 2) l)]))
+    [(/ (get v 0) l) (/ (get v 1) l) (/ (get v 2) l)]))
 
 (defn scale ((x y z) s)
   [(* x s) (* y s) (* z s)])

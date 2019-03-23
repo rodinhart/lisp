@@ -9,7 +9,7 @@
     (if (= obj source)
       best
       (let [d (sphere/intersect ray obj)]
-        (if (and d (or (not best) (< d (best "d"))))
+        (if (and d (or (not best) (< d (get best "d"))))
           { "d" d "obj" obj}
           best))))
     undefined
@@ -20,9 +20,9 @@
     (if (not best)
       [1 1 1] ; sky
       (let [
-        obj (best "obj")
-        point (vec/add (ray "origin") (vec/scale (ray "direction") (best "d")))
-        colour ((best "obj") "colour") ; could depend on point
+        obj (get best "obj")
+        point (vec/add (get ray "origin") (vec/scale (get ray "direction") (get best "d")))
+        colour (get (get best "obj") "colour") ; could depend on point
         ]
         (let [normal (sphere/normal obj point)
               brdf (.random js/Math)]
