@@ -372,6 +372,7 @@ So both are valid.
 
 ## TODO
 
+- avoid primitives being in env for every module
 - make loop/recur (loop [x 1 y 2]) using []?
 - Throw error on unknown symbol
   - make env richer?
