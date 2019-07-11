@@ -1,0 +1,355 @@
+<html>
+  <head>
+    <meta charset="utf8" />
+    <style>
+      body {
+        margin: 0px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="canvas" width="600" height="300"></canvas>
+    <script>
+      const canvas = document.getElementById("canvas")
+      const W = canvas.width
+      const H = canvas.height
+
+      const withImg = (canvas, f) => {
+        const W = canvas.width
+        const H = canvas.height
+        const g = canvas.getContext("2d")
+        const img = g.getImageData(0, 0, W, H)
+        for (let y = 0; y < H; y += 1) {
+          for (let x = 0; x < W; x += 1) {
+            const col = f(x, H - 1 - y, W, H)
+            img.data[(x + y * W) * 4 + 0] = col[0]
+            img.data[(x + y * W) * 4 + 1] = col[1]
+            img.data[(x + y * W) * 4 + 2] = col[2]
+            img.data[(x + y * W) * 4 + 3] = 255
+          }
+        }
+
+        g.putImageData(img, 0, 0)
+      }
+
+      const X = [1, 0, 0]
+      const Y = [0, 1, 0]
+
+      const add = (...xs) =>
+        xs.reduce(([a, b, c], [x, y, z]) => [a + x, b + y, c + z], [0, 0, 0])
+
+      const cross = ([a, b, c], [x, y, z]) => [
+        b * z - c * y,
+        c * x - a * z,
+        a * y - b * x
+      ]
+
+      const dot = ([a, b, c], [x, y, z]) => a * x + b * y + c * z
+
+      const mul = ([a, b, c], [x, y, z]) => [a * x, b * y, c * z]
+
+      const norm = v => {
+        const s = 1 / Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
+
+        return [v[0] * s, v[1] * s, v[2] * s]
+      }
+
+      const scale = ([x, y, z], s) => [x * s, y * s, z * s]
+
+      const semi = (n, r1, r2) => {
+        const t = cross(n, X)
+        const u = iszero(t) ? norm(cross(n, Y)) : norm(t)
+        const v = cross(u, n)
+        const phi = 2 * Math.PI * r1
+
+        return add(
+          scale(u, Math.cos(phi) * Math.sqrt(r2)),
+          scale(v, Math.sin(phi) * Math.sqrt(r2)),
+          scale(n, Math.sqrt(1 - r2))
+        )
+      }
+
+      const sub = ([a, b, c], [x, y, z]) => [a - x, b - y, c - z]
+
+      const iszero = ([x, y, z]) => x === 0 && y === 0 && z === 0
+
+      const inters = (lin, sph) => {
+        const tmp = sub(lin.origin, sph.origin)
+        const b = 2 * dot(lin.direction, tmp)
+        const c = dot(tmp, tmp) - sph.radius * sph.radius
+        const D = b * b - 4 * c
+        if (D >= 0) {
+          const d = -b - Math.sqrt(D)
+          if (d > 0) return d / 2
+          const e = -b + Math.sqrt(D)
+          if (e > 0) return e / 2
+        }
+      }
+      const normals = (sph, point) => norm(sub(point, sph.origin))
+
+      const interp = (lin, pla) => {
+        const t = dot(lin.direction, pla.normal)
+        if (t !== 0) {
+          return (pla.distance - dot(lin.origin, pla.normal)) / t
+        }
+      }
+
+      const normalp = (lin, point) => lin.normal
+
+      const shoot = (cam, x, y) => {
+        const dir = norm(sub(cam.lookAt, cam.origin))
+
+        return {
+          origin: cam.origin,
+          direction: norm(
+            add(
+              scale(dir, 2),
+              scale(cam.right, x - 0.5),
+              scale(cam.up, y - 0.5)
+            )
+          )
+        }
+      }
+
+      const gamma = (n, x) =>
+        Math.min(255, Math.round(255 * Math.pow(x / n, 1 / 2.2)))
+
+      const intersect = (ray, objects, source) =>
+        objects.reduce((best, obj) => {
+          if (obj === source) return best
+
+          const d = obj.radius ? inters(ray, obj) : interp(ray, obj)
+          if (d > 0 && (!best || d < best.d)) {
+            return {
+              d: d,
+              obj: obj
+            }
+          }
+
+          return best
+        }, undefined)
+
+      const trace = (ray, objects, depth, source) => {
+        const best = intersect(ray, objects, source)
+        if (!best) return [0, 0, 0]
+
+        const obj = best.obj
+        if (best.obj.type === "sky") {
+          const point = add(ray.origin, scale(ray.direction, best.d))
+
+          return Math.abs(point[0]) < obj.size && Math.abs(point[1]) < obj.size
+            ? getPixel(
+                point[0] / (obj.size * 2) + 0.5,
+                point[1] / (obj.size * 2) + 0.5
+              )
+            : [0, 0, 0]
+        }
+
+        const point = add(ray.origin, scale(ray.direction, best.d))
+        const colour = obj.colour
+        const normal = obj.radius ? normals(obj, point) : normalp(obj, point)
+        const brdf = Math.random()
+
+        if (brdf < obj.reflection) {
+          const reflect = sub(
+            ray.direction,
+            scale(normal, dot(normal, ray.direction) * 2)
+          )
+
+          return trace(
+            {
+              origin: point,
+              direction: reflect
+            },
+            objects,
+            depth + 1,
+            obj
+          )
+        } else if (brdf - obj.reflection < obj.diffuse) {
+          return mul(
+            scale(colour, 1 / Math.PI),
+            trace(
+              {
+                origin: point,
+                direction: semi(normal, Math.random(), Math.random())
+              },
+              objects,
+              depth + 1,
+              obj
+            )
+          )
+        } else if (brdf - obj.reflection - obj.diffuse < obj.specular) {
+          const reflect = sub(
+            ray.direction,
+            scale(normal, dot(normal, ray.direction) * 2)
+          )
+
+          return mul(
+            [1, 1, 1],
+            trace(
+              {
+                origin: point,
+                direction: semi(reflect, Math.random(), 0.05 * Math.random())
+              },
+              objects,
+              depth + 1,
+              obj
+            )
+          )
+        }
+
+        return [0, 0, 0] // absorbtion
+      }
+
+      const outside = {
+        camera: {
+          origin: [0, -8, 4],
+          lookAt: [0, 0, 0.5],
+          up: [0, 0, 1]
+        },
+        objects: [
+          {
+            origin: [-2, -1, 1],
+            radius: 1,
+            colour: [1, 0, 0],
+            reflection: 0,
+            diffuse: 0.8,
+            specular: 0.0
+          },
+          {
+            origin: [0, 0, 1],
+            radius: 1,
+            colour: [0, 1, 0],
+            reflection: 1,
+            diffuse: 0,
+            specular: 0
+          },
+          {
+            origin: [2, -1, 1],
+            radius: 1,
+            colour: [0, 0, 1],
+            reflection: 0,
+            diffuse: 0.8,
+            specular: 0.0
+          },
+          {
+            // floor
+            normal: [0, 0, 1],
+            distance: 0,
+            colour: [1, 1, 1],
+            reflection: 0,
+            diffuse: 0.8,
+            specular: 0
+          },
+          {
+            type: "sky",
+            size: 1000,
+            normal: [0, 0, -1],
+            distance: -100,
+            colour: [1, 1, 1]
+          }
+        ]
+      }
+      outside.camera.right = norm(
+        cross(
+          sub(outside.camera.lookAt, outside.camera.origin),
+          outside.camera.up
+        )
+      )
+      outside.camera.up = norm(
+        cross(
+          outside.camera.right,
+          sub(outside.camera.lookAt, outside.camera.origin)
+        )
+      )
+
+      const state = {
+        n: 0,
+        photons: []
+      }
+
+      withImg(canvas, (x, y, W, H) => {
+        state.photons[x + y * W] = [0, 0, 0]
+        return [0, 0, 0]
+      })
+
+      const sample = () => {
+        state.n += 1
+        for (let y = 0; y < H; y += 1) {
+          for (let x = 0; x < W; x += 1) {
+            const ray = shoot(outside.camera, (x - (W - H) / 2) / H, y / H)
+            const photon = trace(ray, outside.objects, 0, undefined)
+            const t = state.photons[x + y * W]
+            t[0] += photon[0]
+            t[1] += photon[1]
+            t[2] += photon[2]
+          }
+        }
+      }
+
+      const render = () =>
+        withImg(canvas, (x, y, W, H) =>
+          state.photons[x + y * W].map(x => gamma(state.n, x))
+        )
+
+      const getTime = () => new Date().getTime()
+
+      const time = getTime()
+
+      const getPixel = (x, y) => {
+        const sx = Math.floor(x * sky.width)
+        const sy = Math.floor(y * sky.height)
+        const p = (sx + sy * sky.width) * 4
+
+        return [
+          sky.data[p + 0] / 255,
+          sky.data[p + 1] / 255,
+          sky.data[p + 2] / 255
+        ]
+      }
+
+      let sky
+      ;(async () => {
+        const image = new Image()
+        image.src = "stpeters-probe.png"
+        await new Promise((res, rej) => {
+          image.onload = () => {
+            sky = document.createElement("canvas")
+            sky.width = image.width
+            sky.height = image.height
+            sky.getContext("2d").drawImage(image, 0, 0)
+            sky = {
+              width: image.width,
+              height: image.height,
+              data: sky
+                .getContext("2d")
+                .getImageData(0, 0, image.width, image.height).data
+            }
+
+            res()
+          }
+        })
+
+        for (let i = 0; i < 50; ) {
+          for (let s = 0; s < 5; s += 1) {
+            sample()
+            i += 1
+          }
+
+          render()
+          console.log(
+            (state.n * W * H) / (getTime() - time),
+            "Ks/s",
+            state.n,
+            "spp"
+          )
+
+          await new Promise((res, rej) => {
+            setTimeout(res, 42)
+          })
+        }
+      })()
+    </script>
+  </body>
+</html>

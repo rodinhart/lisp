@@ -1,10 +1,10 @@
 (define X [1 0 0])
 (define Y [0 1 0])
 
-(defn add xs (reduce
+(define add (lambda xs (reduce
   (fn ((a b c) (x y z)) [(+ a x) (+ b y) (+ c z)])
   [0 0 0]
-  xs))
+  xs)))
 
 (defn cross ((a b c) (x y z))
   [(- (* b z) (* c y))
@@ -14,20 +14,20 @@
 (defn dot ((a b c) (x y z))
   (+ (* a x) (* b y) (* c z)))
 
-(defn len (v)
-  (.sqrt js/Math (dot v v)))
+(define len (lambda (v)
+  (.sqrt js/Math (dot v v))))
 
 (defn mul (( a b c) (x y z))
   [(* a x) (* b y) (* c z)])
 
-(defn norm (v)
+(define norm (lambda (v)
   (let [l (len v)]
-    [(/ (get v 0) l) (/ (get v 1) l) (/ (get v 2) l)]))
+    [(/ (get v 0) l) (/ (get v 1) l) (/ (get v 2) l)])))
 
 (defn scale ((x y z) s)
   [(* x s) (* y s) (* z s)])
 
-(defn semi (n)
+(define semi (lambda (n)
   (let [t (cross n X)]
     (let [u (if (zero? t) (norm (cross n Y)) (norm t))]
       (let [v (cross u n)
@@ -36,7 +36,7 @@
         (add
           (scale u (* (.cos js/Math phi) (.sqrt js/Math r2)))
           (scale v (* (.sin js/Math phi) (.sqrt js/Math r2)))
-          (scale n (.sqrt js/Math (- 1 r2))))))))
+          (scale n (.sqrt js/Math (- 1 r2)))))))))
 
 (defn sub ((a b c) (x y z))
   [(- a x) (- b y) (- c z)])

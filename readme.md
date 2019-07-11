@@ -372,6 +372,9 @@ So both are valid.
 
 ## TODO
 
+- consistent namespacing: / for namespace (files really and static fields)
+  - js/Math/PI
+  - (. js/console log) or (. log js/console)?
 - avoid primitives being in env for every module
 - make loop/recur (loop [x 1 y 2]) using []?
 - Throw error on unknown symbol
@@ -383,3 +386,5 @@ So both are valid.
 - is ("foo" {}) a good idea?
 - should ("foo" null) return undefined?
 - define seq as macro and using deftype implementing ISeq protocol?
+- compile.js: clash between / (division) and namespaces (. js/Math PI)
+- implement syntax quote as macro expansion

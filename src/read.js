@@ -3,295 +3,193 @@ const { EMPTY, car, cdr, Cons, isCons } = require("./list.js")
 // needed to convert array tuples to proper Cons
 const toCons = x => (x instanceof Array ? Cons(x[0], toCons(x[1])) : x)
 
-const pipe = (...fns) => (...args) => {
-  let r = fns[0](...args)
-  for (let i = 1; i < fns.length; i += 1) {
-    r = fns[i](r)
+/**
+ *
+ * @param {string} s
+ */
+const read = s => {
+  let i = 0
+
+  const isTerm = c => c.match(/\s/) || c === ")" || c === "]" || c === "}"
+
+  const readWS = () => {
+    while (i < s.length && s[i].match(/\s/)) i += 1
   }
 
-  return r
-}
-
-const State = (name, buffer) => ({
-  name,
-  buffer
-})
-
-function Back(state) {
-  if (!(this instanceof Back)) {
-    return new Back(state)
+  const readComment = () => {
+    while (i < s.length && s[i] !== "\n") i += 1
   }
 
-  this.state = state
-}
-
-const app = (stack, name, buffer, char) => State(name, buffer + char)
-
-const eof = (stack, name, buffer, char) => {
-  throw new Error(`Unexpected end of file in ${name}`)
-}
-
-const getQuoted = x => {
-  if (!x || typeof x !== "object") {
-    return toCons([Symbol.for("quote"), [x, EMPTY]])
-  }
-
-  if (isCons(x)) {
-    if (x === EMPTY) return x
-    if (car(x) === Symbol.for("unquote")) return car(cdr(x))
-
-    const r = [null, [Symbol.for("list"), EMPTY]]
-    r[0] = r[1]
-
-    let c = x
-    while (c !== EMPTY) {
-      r[0][1] = [getQuoted(car(c)), EMPTY]
-      r[0] = r[0][1]
-
-      c = cdr(c)
+  const readNumber = () => {
+    let b = ""
+    while (i < s.length && !isTerm(s[i])) {
+      b += s[i]
+      i += 1
     }
+
+    const r = Number(b)
+    if (String(r) !== b) throw Error(`Invalid number ${b}`)
+
+    return Number(b)
+  }
+
+  const readString = () => {
+    let b = ""
+    i += 1
+    while (i < s.length && s[i] !== '"') {
+      b += s[i]
+      i += 1
+    }
+
+    if (s[i] !== '"') throw new Error(`Expected quote at ${i}`)
+    i += 1
+
+    return b
+  }
+
+  const readList = () => {
+    const r = [null, EMPTY]
+    let c = r
+
+    i += 1
+    readWS()
+    while (i < s.length && s[i] !== ")") {
+      const t = readExpr()
+      if (t === Symbol.for(".")) {
+        readWS()
+        c[1] = readExpr()
+        readWS()
+        break
+      } else {
+        c[1] = [t, EMPTY]
+        c = c[1]
+      }
+
+      readWS()
+    }
+    if (s[i] !== ")") throw new Error(`Expected ) at ${i}`)
+    i += 1
 
     return toCons(r[1])
   }
 
-  if (x instanceof Array) {
-    return x.map(getQuoted)
-  }
-}
-
-const getSymbol = x => {
-  switch (x) {
-    case "undefined":
-      return undefined
-
-    case "null":
-      return null
-
-    case "false":
-      return false
-
-    case "true":
-      return true
-
-    default:
-      return Symbol.for(x)
-  }
-}
-
-const getUnquoted = x => toCons([Symbol.for("unquote"), [x, EMPTY]])
-
-const skp = (stack, name, buffer, char) => State(name, buffer)
-
-const rej = (stack, name, buffer, char) => {
-  throw new Error(`Unexpected character '${char}' in ${name}`)
-}
-
-const push = (() => {
-  const _ = {
-    array: (stack, name, buffer, char) => {
-      stack.push(result => {
-        buffer.push(result)
-
-        return State("array", buffer)
-      })
-
-      return char
-    },
-    cons: (stack, name, buffer, char) => {
-      stack.push(result => {
-        buffer[0][1] = result
-        buffer[0] = null // prevent (a . b b).
-
-        return State("cons", buffer)
-      })
-
-      return char
-    },
-    expr: (stack, name, buffer, char) => {
-      stack.push(result => State("DONE", result))
-
-      return char
-    },
-    list: (stack, name, buffer, char) => {
-      stack.push(result => {
-        buffer[0][1] = [result, EMPTY]
-        buffer[0] = buffer[0][1]
-
-        return State("list", buffer)
-      })
-
-      return char
-    },
-    object: (stack, name, buffer, char) => {
-      stack.push(result => {
-        buffer[0][1] = [result, EMPTY]
-        buffer[0] = buffer[0][1]
-
-        return State("object", buffer)
-      })
-
-      return char
-    },
-    syntax: (stack, name, buffer, char) => {
-      stack.push(result => ret(stack, "syntax", result))
-
-      return char
-    },
-
-    unquote: (stack, name, buffer, char) => {
-      stack.push(result => ret(stack, "unquote", result))
-
-      return char
+  const readArray = () => {
+    const r = []
+    i += 1
+    readWS()
+    while (i < s.length && s[i] !== "]") {
+      r.push(readExpr())
+      readWS()
     }
+
+    if (s[i] !== "]") throw new Error(`Expected ] at ${i}`)
+
+    return r
   }
 
-  return (stack, name, buffer, char) => _[name](stack, name, buffer, char)
-})()
+  const readObject = () => {
+    const r = [null, [Symbol.for("object"), EMPTY]]
+    let c = r[1]
+    let count = 0
 
-const arr = pipe(
-  push,
-  char => State("array", [])
-)
+    i += 1
+    readWS()
+    while (i < s.length && s[i] !== "}") {
+      c[1] = [readExpr(), EMPTY]
+      c = c[1]
+      count += 1
+      readWS()
+    }
 
-const cns = (stack, name, buffer, char) => State("cons", buffer)
+    if (count % 2) throw new Error(`Expected pairs at ${i}`)
 
-const com = (stack, name, buffer, char) => {
-  stack.push(result => State(name, buffer))
+    if (s[i] !== "}") throw new Error(`Expected } at ${i}`)
+    i += 1
 
-  return State("comm")
-}
-
-const num = pipe(
-  push,
-  char => State("number", char)
-)
-
-const obj = pipe(
-  push,
-  char => {
-    const t = [null, [Symbol.for("object"), EMPTY]]
-    t[0] = t[1]
-
-    return State("object", t)
+    return toCons(r[1])
   }
-)
 
-const lst = pipe(
-  push,
-  char => {
-    const t = [null, EMPTY]
-    t[0] = t
+  const readSyntax = () => {
+    i += 1
+    const t = readExpr()
 
-    return State("list", t)
-  }
-)
+    if (t === EMPTY) return EMPTY
 
-const str = pipe(
-  push,
-  char => State("string", "")
-)
+    const quote = x => Cons(Symbol.for("quote"), Cons(x, EMPTY))
 
-const sym = pipe(
-  push,
-  char => State("symbol", char)
-)
+    if (t instanceof Array) {
+      return t.map(x =>
+        isCons(x) && car(x) === Symbol.for("unquote") ? car(cdr(x)) : quote(x)
+      )
+    }
 
-const syn = pipe(
-  push,
-  char => State("syntax")
-)
+    if (!isCons(t)) return quote(t)
 
-const unq = pipe(
-  push,
-  char => State("unquote")
-)
+    const map = xs => {
+      if (xs === EMPTY) return EMPTY
 
-const ret = (stack, name, buffer) =>
-  stack.pop()(
-    (() => {
-      switch (name) {
-        case "comm":
-          return "buffer"
-
-        case "number":
-          return Number(buffer)
-
-        case "symbol":
-          return getSymbol(buffer)
-
-        case "string":
-          return buffer
-
-        case "list":
-        case "cons":
-        case "object":
-          return toCons(buffer[1])
-
-        case "array":
-          return buffer
-
-        case "syntax":
-          return getQuoted(buffer)
-
-        case "unquote":
-          return getUnquoted(buffer)
-
-        default:
-          throw new Error(`No ret for ${name}`)
+      const x = car(xs)
+      if (isCons(x) && car(x) === Symbol.for("unquote")) {
+        return Cons(car(cdr(x)), map(cdr(xs)))
       }
-    })()
-  )
 
-const end = pipe(
-  ret,
-  Back
-)
-
-// prettier-ignore
-const chart = {
-  _:    [  /EOF/, /^;/, /^\n/, /^[\s,]/, /^\(/, /^\)/, /^\. /, /^\[/, /^\]/, /^\{/, /^\}/, /^`/, /^~/, /^([0-9].|[-][0-9])/, /^"/, /^./ ],
-  expr: [   eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  rej,  num,                 str,  sym],
-  comm: [   eof,   skp,  ret,   skp,      skp,   skp,   skp,    skp,   skp,   skp,   skp,   skp,  skp,  skp,                 skp,  skp],
-  list: [   eof,   com,  skp,   skp,      lst,   ret,   cns,    arr,   rej,   obj,   rej,   syn,  unq,  num,                 str,  sym],
-  cons: [   eof,   com,  skp,   skp,      lst,   ret,   sym,    arr,   rej,   obj,   rej,   syn,  unq,  num,                 str,  sym],
-  array: [  eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   ret,   obj,   rej,   syn,  unq,  num,                 str,  sym],
-  object: [ eof,   com,  skp,   skp,      lst,   rej,   rej,    arr,   rej,   obj,   ret,   syn,  unq,  num,                 str,  sym],
-  syntax: [ eof,   rej,  rej,   rej,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  unq,  num,                 str,  sym],
-  unquote: [eof,   rej,  rej,   rej,      lst,   rej,   rej,    arr,   rej,   obj,   rej,   syn,  rej,  num,                 str,  sym],
-  number: [ ret,   ret,  ret,   ret,      rej,   end,   app,    rej,   end,   rej,   end,   rej,  rej,  app,                 rej,  app], // 3.14.15 would pass
-  string: [ eof,   app,  app,   app,      app,   app,   app,    app,   app,   app,   app,   app,  app,  app,                 ret,  app],
-  symbol: [ ret,   ret,  ret,   ret,      rej,   end,   app,    rej,   end,   rej,   end,   rej,  unq,  app,                 rej,  app],
-}
-
-// TODO return errors as type, don't throw
-// TODO add line/col to errors
-const read = s => {
-  const stack = []
-  let state = State("expr")
-  for (let i = 0; i <= s.length; i += 1) {
-    const char = s[i] || "EOF"
-    const row = chart[state.name]
-    let j
-    for (j = 0; j < row.length; j += 1) {
-      if ((char + (s[i + 1] || "")).match(chart._[j])) {
-        state = row[j](stack, state.name, state.buffer, char)
-        break
-      }
+      return Cons(quote(x), map(cdr(xs)))
     }
 
-    if (j === chart.length) throw new Error(`Unknown character '${char}'`)
+    return car(t) === Symbol.for("object")
+      ? Cons(Symbol.for("object"), map(cdr(t)))
+      : Cons(Symbol.for("list"), map(t))
+  }
 
-    if (state instanceof Back) {
-      state = state.state
-      i -= 1
+  const readUnquote = () => {
+    i += 1
+
+    return Cons(Symbol.for("unquote"), Cons(readExpr(), EMPTY))
+  }
+
+  const readSymbol = () => {
+    let b = ""
+    while (i < s.length && !isTerm(s[i])) {
+      b += s[i]
+      i += 1
     }
 
-    if (state.name === "DONE") {
-      return state.buffer
+    if (b === "undefined") return undefined
+    if (b === "null") return null
+    if (b === "false") return false
+    if (b === "true") return true
+
+    return Symbol.for(b)
+  }
+
+  const readExpr = () => {
+    readWS()
+    if (i >= s.length) throw new Error(`Expected expression at ${i}`)
+
+    const c = s[i]
+    if (c === ";") {
+      readComment()
+      return readExpr()
+    } else if ((c >= "0" && c <= "9") || c === "-") {
+      return readNumber()
+    } else if (c === '"') {
+      return readString()
+    } else if (c === "(") {
+      return readList()
+    } else if (c === "[") {
+      return readArray()
+    } else if (c === "{") {
+      return readObject()
+    } else if (c === "`") {
+      return readSyntax()
+    } else if (c === "~") {
+      return readUnquote()
+    } else {
+      return readSymbol()
     }
   }
 
-  throw new Error("Beyond end of file")
+  return readExpr(0)
 }
 
 module.exports = read

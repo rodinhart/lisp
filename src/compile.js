@@ -1,4 +1,4 @@
-const { EMPTY, car, cdr, Cons, isCons } = require("./list.js")
+const { EMPTY, car, cdr, isCons } = require("./list.js")
 const { map } = require("./ISeq.js")
 
 const ENV = "env"

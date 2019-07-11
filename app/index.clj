@@ -32,10 +32,10 @@
 (defn getTime () (.getTime (new js/Date)))
 
 (set! state "time" (getTime))
-(defn iterate ()
+(defn iterate () ; 5.72 Ks/s
   ; (sample)
   ; (sample)
-  ; (sample)
+  (sample)
   (sample)
   (sample)
   (render)

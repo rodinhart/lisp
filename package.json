@@ -6,7 +6,7 @@
     "build": "webpack",
     "repl": "node src/repl.js",
     "start": "webpack --watch",
-    "test": "jest --watch"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
