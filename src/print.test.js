@@ -20,5 +20,4 @@ test("prn", () => {
   expect(prn(x => x)).toEqual("[procedure]")
 
   expect(prn({ a: 1, b: EMPTY })).toEqual(`{"a" 1 "b" ()}`)
-  expect(prn({ [Symbol.for("a")]: 42 })).toEqual(`{"a" 42}`)
 })

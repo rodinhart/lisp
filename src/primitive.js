@@ -29,7 +29,8 @@ module.exports = {
   object: (...xs) => {
     const r = {}
     for (let i = 0; i + 1 < xs.length; i += 2) {
-      r[xs[i]] = xs[i + 1]
+      const x = xs[i]
+      r[typeof x === "symbol" ? Symbol.keyFor(x) : String(x)] = xs[i + 1]
     }
 
     return r

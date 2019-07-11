@@ -86,7 +86,7 @@ test("compile", () => {
       x => sandbox(x, { ...primitive, a: 10, b: 2 }),
       print
     ])
-  ).toEqual(`{"a" 1 "2" 3}`)
+  ).toEqual(`{"2" 3 "a" 1}`)
 
   expect(
     thread("`(a ~(car (cdr `(b ~c))))", [
