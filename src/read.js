@@ -27,6 +27,7 @@ const read = s => {
       i += 1
     }
 
+    if (b === "-") return Symbol.for(b)
     const r = Number(b)
     if (String(r) !== b) throw Error(`Invalid number ${b}`)
 
@@ -83,6 +84,7 @@ const read = s => {
     }
 
     if (s[i] !== "]") throw new Error(`Expected ] at ${i}`)
+    i += 1
 
     return r
   }

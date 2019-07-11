@@ -13,6 +13,7 @@ test("read", () => {
   expect(read("42")).toEqual(42)
   expect(read("-2")).toEqual(-2)
   expect(() => read("-2-")).toThrow(/Invalid number/)
+  expect(prn(read("(- 4 1)"))).toEqual("(- 4 1)")
   expect(read("3.1415")).toEqual(3.1415)
   expect(read(`"hello"`)).toEqual("hello")
   expect(read("hello")).toEqual(Symbol.for("hello"))
