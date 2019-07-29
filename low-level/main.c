@@ -1,9 +1,3 @@
-/*
-  program as if assembler, no functions?
-  use global regs: expr, env etc.
-  global stack
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -133,6 +127,12 @@ Object *stack[100];
 int sp = 100;
 void push(Object *x)
 {
+  if (sp == 0)
+  {
+    printf("\nStack overflow!\n");
+    exit(1);
+  }
+
   sp -= 1;
   stack[sp] = x;
 }
@@ -149,6 +149,8 @@ Object *env;
 Object *res;
 Object *op;
 Object *args;
+
+void evalArgs();
 
 void eval()
 {
@@ -201,20 +203,7 @@ void eval()
     // get arguments
     push(res);
     expr = expr->c.b;
-    args = NULL;
-    while (expr != NULL)
-    {
-      push(expr);
-      push(env);
-      push(args);
-      expr = expr->c.a;
-      eval();
-      args = pop();
-      args = Cons(res, args);
-      env = pop();
-      expr = pop();
-      expr = expr->c.b;
-    }
+    evalArgs();
     op = pop();
 
     // apply operator
@@ -224,8 +213,43 @@ void eval()
       return;
     }
 
-    res = Int(100);
+    // (env lambda (x y) y)
+    env = op->c.a;
+    op = op->c.b->c.b;
+    expr = op->c.a;
+    while (expr != NULL)
+    {
+      env = Cons(args->c.a, env);
+      env = Cons(expr->c.a, env);
+      args = args->c.b;
+      expr = expr->c.b;
+    }
+
+    expr = op->c.b->c.a;
+    printf("\n");
+    eval();
   }
+}
+
+void evalArgs()
+{
+  if (expr == NULL)
+  {
+    args = NULL;
+    return;
+  }
+
+  push(expr);
+  expr = expr->c.b;
+  evalArgs();
+  expr = pop();
+  push(args);
+  expr = expr->c.a;
+  push(env);
+  eval();
+  env = pop();
+  args = pop();
+  args = Cons(res, args);
 }
 
 int main(void)
