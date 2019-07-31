@@ -87,6 +87,109 @@ Object *plus(Object *xs)
   return Int(r);
 }
 
+Object *isZero(Object *xs)
+{
+  if (xs->c.a->i == 0)
+  {
+    return xs;
+  }
+  else
+  {
+    return NULL;
+  }
+}
+
+#define gc() getc(stdin)
+
+int c;
+
+void readSpace()
+{
+  while (c != EOF && isspace(c))
+  {
+    c = gc();
+  }
+}
+
+Object *readInt()
+{
+  char buf[20];
+  buf[0] = c;
+  int i = 1;
+  for (c = gc(); c != EOF && !isspace(c) && c != '(' && c != ')'; c = gc())
+  {
+    buf[i] = c;
+    i += 1;
+  }
+
+  buf[i] = 0;
+
+  return Int(atoi(buf));
+}
+
+Object *readSymbol()
+{
+  char buf[SYMBOL_LENGTH];
+  buf[0] = c;
+  int i = 1; // isterm?
+  for (c = gc(); c != EOF && !isspace(c) && c != '(' && c != ')'; c = gc())
+  {
+    buf[i] = c;
+    i += 1;
+  }
+
+  buf[i] = 0;
+
+  return Symbol(buf);
+}
+
+Object *readExpr();
+Object *readList()
+{
+  c = gc(); // skip (
+  readSpace();
+  Object *result = Cons(NULL, NULL);
+  Object *current = result;
+  while (c != EOF && c != ')')
+  {
+    current->c.b = Cons(readExpr(), NULL);
+    current = current->c.b;
+    readSpace();
+  }
+
+  if (c == EOF)
+  {
+    printf("Missing )\n");
+    exit(1);
+  }
+
+  c = gc(); // skip )
+
+  return result->c.b;
+}
+
+Object *readExpr()
+{
+  if (c == EOF)
+    return NULL;
+
+  if (c == '(')
+    return readList();
+
+  if (isdigit(c) || c == '-')
+    return readInt();
+
+  return readSymbol();
+}
+
+Object *read()
+{
+  c = gc();
+  readSpace();
+
+  return readExpr();
+}
+
 void prn(Object *x)
 {
   if (x == NULL)
@@ -106,11 +209,28 @@ void prn(Object *x)
     break;
 
   case CONS:
+    if (x->c.b != NULL &&
+        x->c.b->c.a->type == SYMBOL &&
+        strcmp(x->c.b->c.a->s, "lambda") == 0)
+    {
+      printf("[PROCEDURE]");
+      return;
+    }
+
     printf("(");
+    int sep = 0;
     while (x != NULL)
     {
+      if (sep == 1)
+      {
+        printf(" ");
+      }
+      else
+      {
+        sep = 1;
+      }
+
       prn(x->c.a);
-      printf(" ");
       x = x->c.b;
     }
 
@@ -190,6 +310,44 @@ void eval()
         res = Cons(env, expr);
         return;
       }
+
+      if (strcmp(expr->c.a->s, "if") == 0)
+      {
+        push(expr);
+        push(env);
+        expr = expr->c.b->c.a;
+        eval();
+        env = pop();
+        expr = pop();
+        if (res == NULL)
+        {
+          expr = expr->c.b->c.b->c.b->c.a;
+        }
+        else
+        {
+          expr = expr->c.b->c.b->c.a;
+        }
+        eval();
+        return;
+      }
+
+      if (strcmp(expr->c.a->s, "define") == 0)
+      {
+        push(expr);
+        push(env);
+        expr = expr->c.b->c.b->c.a;
+        eval();
+        env = pop();
+        expr = pop();
+        while (env->c.b != NULL)
+        {
+          env = env->c.b;
+        }
+
+        env->c.b = Cons(expr->c.b->c.a, Cons(res, NULL));
+        res = expr->c.b->c.a;
+        return;
+      }
     }
 
     // get op
@@ -226,7 +384,6 @@ void eval()
     }
 
     expr = op->c.b->c.a;
-    printf("\n");
     eval();
   }
 }
@@ -255,19 +412,20 @@ void evalArgs()
 int main(void)
 {
   printf("\nWelcome to LISP\n");
-  Object *core = Cons(Symbol("+"), Cons(Native(plus), NULL));
+  Object *core = Cons(Symbol("+"), Cons(Native(plus),
+                                        Cons(Symbol("zero?"), Cons(Native(isZero), NULL))));
 
-  Object *code = Cons(
-      Cons(Symbol("lambda"),
-           Cons(Cons(Symbol("x"), Cons(Symbol("y"), NULL)),
-                Cons(Symbol("y"), NULL))),
-      Cons(Int(3), Cons(Int(4), NULL)));
-
-  expr = code;
-  env = core;
-  eval();
-  prn(res);
-  printf("\n");
+  while (1)
+  {
+    printf("    ");
+    expr = read();
+    if (c == EOF)
+      break;
+    env = core;
+    eval();
+    prn(res);
+    printf("\n");
+  }
 
   return 0;
 }
