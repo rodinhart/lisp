@@ -4,6 +4,8 @@
 
 #define SYMBOL_LENGTH 16
 
+// Type system
+
 typedef enum
 {
   INT,
@@ -12,6 +14,7 @@ typedef enum
   NATIVE
 } Type;
 
+// TODO check size of this thing
 typedef struct _object
 {
   Type type;
@@ -25,11 +28,76 @@ typedef struct _object
     } c;
     struct _object *(*f)(struct _object *);
   };
+  char marked;
 } Object;
+
+#define HEAP_SIZE 10000
+Object *heap = NULL;
+Object *freePtr;
+int freeLen;
+
+void mark(Object *p)
+{
+  if (p == NULL || p->marked == 1)
+  {
+    return;
+  }
+
+  p->marked = 1;
+
+  if (p->type != CONS)
+  {
+    return;
+  }
+
+  mark(p->c.a);
+  mark(p->c.b);
+}
+
+void GC(Object *p)
+{
+  mark(p);
+
+  int was = freeLen;
+  freePtr = NULL;
+  freeLen = 0;
+  for (int i = 0; i < HEAP_SIZE; i += 1)
+  {
+    p = heap + i;
+    if (p->marked == 1)
+    {
+      p->marked = 0;
+    }
+    else
+    {
+      p->type = CONS; // needed?
+      p->c.a = NULL;  // needed?
+      p->c.b = freePtr;
+      freePtr = p;
+      freeLen += 1;
+    }
+  }
+
+  printf("\nWas: %d, Free: %d\n", was, freeLen);
+}
 
 Object *allocate()
 {
-  Object *x = (Object *)malloc(sizeof(Object));
+  if (heap == NULL)
+  {
+    heap = (Object *)malloc(HEAP_SIZE * sizeof(Object));
+    GC(NULL);
+  }
+
+  if (freePtr == NULL)
+  {
+    printf("Heap overflow!\n");
+    exit(1);
+  }
+
+  Object *x = freePtr;
+  freePtr = freePtr->c.b;
+  freeLen -= 1;
 
   return x;
 }
@@ -74,6 +142,8 @@ Object *Native(Object *f(Object *))
   return x;
 }
 
+// Native procedures
+
 Object *plus(Object *xs)
 {
   int r = 0;
@@ -81,6 +151,19 @@ Object *plus(Object *xs)
   while (xs != NULL)
   {
     r = r + xs->c.a->i;
+    xs = xs->c.b;
+  }
+
+  return Int(r);
+}
+
+Object *mul(Object *xs)
+{
+  int r = 1;
+
+  while (xs != NULL)
+  {
+    r = r * xs->c.a->i;
     xs = xs->c.b;
   }
 
@@ -98,6 +181,33 @@ Object *isZero(Object *xs)
     return NULL;
   }
 }
+
+Object *list(Object *xs)
+{
+  return xs;
+}
+
+Object *cons(Object *xs)
+{
+  return Cons(xs->c.a, xs->c.b->c.a);
+}
+
+Object *car(Object *xs)
+{
+  return xs->c.a->c.a;
+}
+
+Object *cdr(Object *xs)
+{
+  return xs->c.a->c.b;
+}
+
+Object *mod(Object *xs)
+{
+  return Int(xs->c.a->i % xs->c.b->c.a->i);
+}
+
+// Reader
 
 #define gc() getc(stdin)
 
@@ -190,6 +300,8 @@ Object *read()
   return readExpr();
 }
 
+// Printer
+
 void prn(Object *x)
 {
   if (x == NULL)
@@ -243,27 +355,31 @@ void prn(Object *x)
   }
 }
 
-Object *stack[100];
-int sp = 100;
+// Stack
+Object *stack = NULL;
+int stackLen = 0;
+
 void push(Object *x)
 {
-  if (sp == 0)
+  if (stackLen == 100)
   {
     printf("\nStack overflow!\n");
     exit(1);
   }
 
-  sp -= 1;
-  stack[sp] = x;
+  stack = Cons(x, stack);
+  stackLen += 1;
 }
 
 Object *pop()
 {
-  sp += 1;
-  return stack[sp - 1];
+  stackLen -= 1;
+  Object *r = stack->c.a;
+  stack = stack->c.b;
+
+  return r;
 }
 
-// TODO check regs with SICP
 Object *expr;
 Object *env;
 Object *res;
@@ -274,10 +390,20 @@ void evalArgs();
 
 void eval()
 {
+start:
   if (expr == NULL)
   {
     res = NULL;
     return;
+  }
+
+  if (freeLen < 16)
+  {
+    push(expr);
+    push(env);
+    GC(stack);
+    env = pop();
+    expr = pop();
   }
 
   switch (expr->type)
@@ -327,8 +453,8 @@ void eval()
         {
           expr = expr->c.b->c.b->c.a;
         }
-        eval();
-        return;
+
+        goto start;
       }
 
       if (strcmp(expr->c.a->s, "define") == 0)
@@ -384,7 +510,7 @@ void eval()
     }
 
     expr = op->c.b->c.a;
-    eval();
+    goto start;
   }
 }
 
@@ -409,11 +535,24 @@ void evalArgs()
   args = Cons(res, args);
 }
 
+Object *def(Object *res, Object *symbol, Object *value)
+{
+  return Cons(symbol, Cons(value, res));
+}
+
 int main(void)
 {
   printf("\nWelcome to LISP\n");
-  Object *core = Cons(Symbol("+"), Cons(Native(plus),
-                                        Cons(Symbol("zero?"), Cons(Native(isZero), NULL))));
+  Object *core = NULL;
+  core = def(core, Symbol("+"), Native(plus));
+  core = def(core, Symbol("*"), Native(mul));
+  core = def(core, Symbol("zero?"), Native(isZero));
+  core = def(core, Symbol("list"), Native(list));
+  core = def(core, Symbol("cons"), Native(cons));
+  core = def(core, Symbol("car"), Native(car));
+  core = def(core, Symbol("cdr"), Native(cdr));
+  core = def(core, Symbol("%"), Native(mod));
+  push(core);
 
   while (1)
   {
