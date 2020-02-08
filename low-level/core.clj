@@ -1,24 +1,42 @@
-(define sum (lambda (n a)
-  (if (zero? n)
-    a
-    (sum (+ n -1) (+ a n)))))
+(define defm (macro (name args body)
+  (list 'define name (list 'macro args body))))
 
-(sum 1000 0)
+(defm defn (name args body)
+  (list 'define name (list 'lambda args body)))
 
-(define sq (lambda (x) (* x x)))
-(define map (lambda (f xs)
+(defn last (xs)
   (if xs
-    (cons (f (car xs)) (map f (cdr xs)))
-    xs)))
+    (if (cdr xs)
+      (last (cdr xs))
+      (car xs))
+    xs))
 
-(define filter (lambda (p xs)
+(defn memo (fn)
+  ((lambda (cache)
+    (lambda ()
+      (if (car cache)
+        (car cache)
+        ((lambda (t) (car cache)) (setcar! cache (fn))))))
+    (cons () ())))
+
+(defm seq (a b)
+  (list 'list a (list 'memo (list 'lambda () b))))
+(defn first (x) (car x))
+(defn rest (x) ((car (cdr x))))
+(defn to-list (xs)
   (if xs
-    (if (p (car xs))
-      (cons (car xs) (filter p (cdr xs)))
-      (filter p (cdr xs)))
-    xs)))
-(define even (lambda (x)
-  (zero? (% x 2))))
+    (cons (first xs) (to-list (rest xs)))
+    xs))
+(defn take (n xs)
+  (if xs
+    (if (zero? n)
+      ()
+      (seq (first xs) (take (+ n -1) (rest xs))))
+    xs))
 
-(define lst (list 1 2 3 4 5 6 7 8 9 10))
-(filter even (map sq lst))
+(defn zip (f xs ys)
+  (seq (f (first xs) (first ys)) (zip f (rest xs) (rest ys))))
+
+(define l (seq 1 (seq 1 (zip + l (rest l)))))
+(to-list (take 15 l))
+

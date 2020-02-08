@@ -7,6 +7,7 @@ const read = require("./read.js")
 const sandbox = require("./sandbox.js")
 
 // this "repl" return the env, not the result
+// essentially the main expand, compile and run for lisp modules
 const lisp = (imports, source) => {
   const env = { ...primitive, ...imports }
 

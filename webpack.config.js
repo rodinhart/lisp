@@ -1,7 +1,7 @@
 const path = require("path")
 
 module.exports = {
-  // devtool: "inline-source-map",
+  devtool: "inline-source-map",
   entry: "./app/index.clj",
   mode: "production",
   module: {

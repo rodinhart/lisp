@@ -1,4 +1,5 @@
 const sandbox = (x, env) => {
+  console.log(x)
   try {
     return eval(x)
   } catch (e) {

@@ -12,12 +12,18 @@ const read = s => {
 
   const isTerm = c => c.match(/\s/) || c === ")" || c === "]" || c === "}"
 
-  const readWS = () => {
-    while (i < s.length && s[i].match(/\s/)) i += 1
-  }
-
   const readComment = () => {
     while (i < s.length && s[i] !== "\n") i += 1
+  }
+
+  const readWS = () => {
+    while (i < s.length && s[i].match(/\s|;/)) {
+      if (s[i] === ";") {
+        readComment()
+      } else {
+        i += 1
+      }
+    }
   }
 
   const readNumber = () => {
@@ -169,10 +175,7 @@ const read = s => {
     if (i >= s.length) throw new Error(`Expected expression at ${i}`)
 
     const c = s[i]
-    if (c === ";") {
-      readComment()
-      return readExpr()
-    } else if ((c >= "0" && c <= "9") || c === "-") {
+    if ((c >= "0" && c <= "9") || c === "-") {
       return readNumber()
     } else if (c === '"') {
       return readString()

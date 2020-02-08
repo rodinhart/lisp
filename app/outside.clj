@@ -7,15 +7,15 @@
 
 (define objects [
   { "origin" [-3 0 1]
-    "radius" 1 ; needs space, otherwise radius is undefined
+    "radius" 1
     "colour" [1 0 0] }
   { "origin" [0 0 1]
-    "radius" 1 ; needs space, otherwise radius is undefined
+    "radius" 1
     "colour" [0 1 0] }
   { "origin" [3 0 1]
-    "radius" 1 ; needs space, otherwise radius is undefined
+    "radius" 1
     "colour" [0 0 1] }
   { "origin" [0 0 -10000]
-    "radius" 10000 ; needs space
+    "radius" 10000
     "colour" [1 1 1] }
 ])

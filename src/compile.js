@@ -19,6 +19,7 @@ const compile = (x, env) => {
     const name = Symbol.keyFor(x)
     if (env[name]) return name // in scope
 
+    // TODO sort out namespaces
     const gets = name === "/" ? [`["/"]`] : name.split("/").map(x => `["${x}"]`)
     return `${ENV}${gets.join("")}`
   }

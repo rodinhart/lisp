@@ -41,5 +41,5 @@
 (defn sub ((a b c) (x y z))
   [(- a x) (- b y) (- c z)])
 
-(defn zero? (( x y z))
+(defn zero? ((x y z))
   (and (= x 0) (and (= y 0) (= z 0))))

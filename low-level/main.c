@@ -2,7 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define HEAP_SIZE 10000
+#define STACK_SIZE 1000
 #define SYMBOL_LENGTH 16
+
+// TODO add HM type annotations
+// TODO use car/cdr functions for readability (opposed to ->)
+// TODO give lambda/macro proper type for easier checking
+// TODO error checking!
 
 // Type system
 
@@ -31,7 +38,6 @@ typedef struct _object
   char marked;
 } Object;
 
-#define HEAP_SIZE 10000
 Object *heap = NULL;
 Object *freePtr;
 int freeLen;
@@ -207,6 +213,15 @@ Object *mod(Object *xs)
   return Int(xs->c.a->i % xs->c.b->c.a->i);
 }
 
+// (setcar! x 10)
+Object *setcarbang(Object *xs)
+{
+  Object *x = xs->c.a;
+  x->c.a = xs->c.b->c.a;
+
+  return x;
+}
+
 // Reader
 
 #define gc() getc(stdin)
@@ -278,6 +293,14 @@ Object *readList()
   return result->c.b;
 }
 
+void readComment()
+{
+  while (c != '\n')
+  {
+    c = gc();
+  }
+}
+
 Object *readExpr()
 {
   if (c == EOF)
@@ -288,6 +311,20 @@ Object *readExpr()
 
   if (isdigit(c) || c == '-')
     return readInt();
+
+  if (c == '\'')
+  {
+    c = gc();
+    return Cons(Symbol("quote"), Cons(readExpr(), NULL));
+  }
+
+  if (c == ';')
+  {
+    readComment();
+    readSpace();
+
+    return readExpr();
+  }
 
   return readSymbol();
 }
@@ -325,7 +362,15 @@ void prn(Object *x)
         x->c.b->c.a->type == SYMBOL &&
         strcmp(x->c.b->c.a->s, "lambda") == 0)
     {
-      printf("[PROCEDURE]");
+      printf("[LAMBDA]");
+      return;
+    }
+
+    if (x->c.b != NULL &&
+        x->c.b->c.a->type == SYMBOL &&
+        strcmp(x->c.b->c.a->s, "macro") == 0)
+    {
+      printf("[MACRO]");
       return;
     }
 
@@ -350,7 +395,7 @@ void prn(Object *x)
     break;
 
   case NATIVE:
-    printf("[PROC]");
+    printf("[NATIVE]");
     break;
   }
 }
@@ -361,7 +406,7 @@ int stackLen = 0;
 
 void push(Object *x)
 {
-  if (stackLen == 100)
+  if (stackLen == STACK_SIZE)
   {
     printf("\nStack overflow!\n");
     exit(1);
@@ -380,11 +425,29 @@ Object *pop()
   return r;
 }
 
+// Util
 Object *expr;
 Object *env;
 Object *res;
 Object *op;
 Object *args;
+
+Object *lookup(Object *symbol, Object *env)
+{
+  while (env != NULL)
+  {
+    if (strcmp(env->c.a->s, symbol->s) == 0)
+    {
+      res = env->c.b->c.a;
+      return 1;
+    }
+
+    env = env->c.b->c.b;
+  }
+
+  res = NULL;
+  return 0;
+}
 
 void evalArgs();
 
@@ -413,19 +476,11 @@ start:
     return;
 
   case SYMBOL:
-    while (env != NULL)
+    if (lookup(expr, env) == 0)
     {
-      if (strcmp(env->c.a->s, expr->s) == 0)
-      {
-        res = env->c.b->c.a;
-        return;
-      }
-
-      env = env->c.b->c.b;
+      printf("Unknown symbol %s\n", expr->s);
+      exit(1);
     }
-
-    printf("Unknown symbol %s\n", expr->s);
-    exit(1);
     return;
 
   case CONS:
@@ -474,6 +529,18 @@ start:
         res = expr->c.b->c.a;
         return;
       }
+
+      if (strcmp(expr->c.a->s, "macro") == 0)
+      {
+        res = Cons(env, expr);
+        return;
+      }
+
+      if (strcmp(expr->c.a->s, "quote") == 0)
+      {
+        res = expr->c.b->c.a;
+        return;
+      }
     }
 
     // get op
@@ -514,6 +581,7 @@ start:
   }
 }
 
+// TODO use map as well? (see macroMap)
 void evalArgs()
 {
   if (expr == NULL)
@@ -535,6 +603,79 @@ void evalArgs()
   args = Cons(res, args);
 }
 
+void macroMap();
+void macroexpand()
+{
+  if (expr == NULL || expr->type != CONS)
+  {
+    res = expr;
+    return;
+  }
+
+  push(env);
+  macroMap();
+  env = pop();
+
+  if (res->c.a == NULL || res->c.a->type != SYMBOL)
+  {
+    return;
+  }
+
+  push(res);
+  lookup(res->c.a, env); // (env macro args body)
+  op = res;
+  res = pop();
+
+  if (op == NULL || op->type != CONS || op->c.b == NULL ||
+      op->c.b->c.a->type != SYMBOL || strcmp(op->c.b->c.a->s, "macro") != 0)
+  {
+    return;
+  }
+
+  // refactor apply
+  args = res->c.b;
+  env = op->c.a;
+  op = op->c.b->c.b;
+  expr = op->c.a;
+  while (expr != NULL)
+  {
+    env = Cons(args->c.a, env);
+    env = Cons(expr->c.a, env);
+    args = args->c.b;
+    expr = expr->c.b;
+  }
+
+  expr = op->c.b->c.a;
+  eval();
+  // recurse macroexpand
+}
+
+void macroMap()
+{
+  if (expr == NULL)
+  {
+    res = NULL;
+    return;
+  }
+
+  push(expr);
+  push(env);
+  if (freeLen < 16)
+  {
+    GC(stack);
+  }
+
+  expr = expr->c.b;
+  macroMap();
+  env = pop();
+  expr = pop();
+  push(res);
+  expr = expr->c.a;
+  macroexpand();
+  expr = pop();
+  res = Cons(res, expr);
+}
+
 Object *def(Object *res, Object *symbol, Object *value)
 {
   return Cons(symbol, Cons(value, res));
@@ -552,6 +693,7 @@ int main(void)
   core = def(core, Symbol("car"), Native(car));
   core = def(core, Symbol("cdr"), Native(cdr));
   core = def(core, Symbol("%"), Native(mod));
+  core = def(core, Symbol("setcar!"), Native(setcarbang));
   push(core);
 
   while (1)
@@ -559,9 +701,18 @@ int main(void)
     printf("    ");
     expr = read();
     if (c == EOF)
+    {
+      GC(stack);
       break;
+    }
+
+    env = core;
+    macroexpand();
+
+    expr = res;
     env = core;
     eval();
+
     prn(res);
     printf("\n");
   }

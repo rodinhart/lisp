@@ -372,6 +372,7 @@ So both are valid.
 
 ## TODO
 
+- proper source maps for debugging
 - consistent namespacing: / for namespace (files really and static fields)
   - js/Math/PI
   - (. js/console log) or (. log js/console)?

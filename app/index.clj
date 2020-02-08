@@ -1,3 +1,4 @@
+(import vector ./vector.clj)
 (import camera ./camera.clj)
 (import dom ./dom.js)
 (import film ./film.clj)
