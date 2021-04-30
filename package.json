@@ -19,9 +19,9 @@
   },
   "homepage": "https://github.com/rodinhart/lisp#readme",
   "devDependencies": {
-    "jest": "^24.9.0",
+    "jest": "^26.6.3",
     "source-list-map": "^2.0.1",
-    "webpack": "^4.42.1",
+    "webpack": "^5.36.2",
     "webpack-cli": "^3.3.11"
   }
 }
